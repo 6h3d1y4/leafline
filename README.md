@@ -1,16 +1,20 @@
-# [Your Project Title Here]
+# Leafline: Tree-Cover Mapping for Kiel
 
 ## Repository Link
 
-[https://github.com/your_username/your_project_name]
+[https://github.com/6h3d1y4/leafline]
 
 ## Description
 
-[Short project description here. Briefly summarize the problem you are trying to solve and the approach you're taking.]
+Leafline is a geospatial AI project for mapping urban tree cover in Kiel, Germany, using high-resolution RGBI orthomosaic imagery, remote sensing data, and deep-learning-based semantic segmentation.
+
+The project aims to develop a reproducible workflow to detect and quantify tree canopy cover across the city. A segmentation model is pretrained on existing aerial imagery dataset and fine-tuned using manually annotated Kiel RGBI orthomosaic tiles. The final model will generate georeferenced tree-cover masks that can be used to calculate canopy percentage.
+
+The broader goal is to support urban climate resilience and green infrastructure planning by identifying areas with limited tree cover. Future extensions include overlaying tree-cover maps with vulnerable-population locations such as schools, kindergartens, hospitals, clinics, and elderly-care homes to assess local canopy availability and prioritize greening interventions.
 
 ### Task Type
 
-[Image Classification / Chatbot / Regression / Clustering / Other]
+[Image Classification]
 
 ### Results Summary
 
@@ -39,5 +43,4 @@
 5. **[Presentation](4_Presentation/README.md)**
 
 ## Cover Image
-
-![Project Cover Image](CoverImage/cover_image.png)
+![leafline logo](https://github.com/6h3d1y4/leafline/blob/main/CoverImage/leafline_logo_inverted.png)
