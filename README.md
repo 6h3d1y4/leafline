@@ -1,4 +1,3 @@
-![leafline logo](https://github.com/6h3d1y4/leafline/blob/main/CoverImage/leafline_logo_full.png)
 # Leafline: Tree-Cover Mapping for Kiel
 
 ## Repository Link
@@ -44,5 +43,4 @@ The broader goal is to support urban climate resilience and green infrastructure
 5. **[Presentation](4_Presentation/README.md)**
 
 ## Cover Image
-
-![Project Cover Image](CoverImage/cover_image.png)
+![leafline logo](https://github.com/6h3d1y4/leafline/blob/main/CoverImage/leafline_logo_full.png)
