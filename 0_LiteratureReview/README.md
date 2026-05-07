@@ -29,6 +29,3 @@ Approaches or solutions that have been tried before on similar projects.
   * **Methods:** Dataset consisting of airborne imagery and laser scanner data covering urban areas in Potsdam and Vaihingen. Researchers submitted results for urban object detection and 3D building reconstruction, evaluated against reference data. Classes include buildings, trees, low vegetation, impervious surfaces, cars, and background. Standard evaluation metrics are overall accuracy (OA), mean F1 score, and mean IoU.
   * **Outcomes:** Systematic comparison and analysis of submitted methods to identify promising strategies for automatic urban object extraction from airborne sensor data, as well as common failure modes of state-of-the-art approaches at the time.
   * **Relation to the Project:** This is our primary pretraining dataset. The paper defines the class taxonomy, evaluation metrics, and scientific context that we adopt directly for our project. Understanding the benchmark setup is essential for correctly interpreting pretraining results and for justifying our choice of baseline classes before fine-tuning on Kiel DOP20 data.
-  - **Methods**:
-  - **Outcomes**:
-  - **Relation to the Project**:
