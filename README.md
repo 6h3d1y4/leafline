@@ -1,4 +1,4 @@
-![leafline logo](https://github.com/6h3d1y4/leafline/blob/main/CoverImage/leafline_logo.png)
+![leafline logo](https://github.com/6h3d1y4/leafline/blob/main/CoverImage/leafline_logo_full.png)
 # Leafline: Tree-Cover Mapping for Kiel
 
 ## Repository Link
