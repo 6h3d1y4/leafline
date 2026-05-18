@@ -78,6 +78,9 @@ target/
 # Jupyter Notebook
 .ipynb_checkpoints
 
+# Dataset — large binary files, not tracked in version control
+Data/
+
 # IPython
 profile_default/
 ipython_config.py
