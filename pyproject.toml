@@ -16,6 +16,7 @@ dependencies = [
     "tqdm",
     "seaborn",
     "shapely",
+    "deepforest>=2.1.0",
 ]
 
 [tool.uv.sources]
