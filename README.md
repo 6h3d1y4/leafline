@@ -8,15 +8,26 @@
 
 ## Description
 
-Leafline is a geospatial AI project for mapping urban tree cover in Kiel, Germany, using high-resolution RGBI orthomosaic imagery, remote sensing data, and deep-learning-based semantic segmentation.
+Leafline is a geospatial AI project for mapping urban tree cover in Kiel, Germany, using high-resolution RGBI orthomosaic imagery and deep-learning-based instance segmentation.
 
-The project aims to develop a reproducible workflow to detect and quantify tree canopy cover across the city. A segmentation model is pretrained on existing aerial imagery dataset and fine-tuned using manually annotated Kiel RGBI orthomosaic tiles. The final model will generate georeferenced tree-cover masks that can be used to calculate canopy percentage.
+The project seeks to assess the effectiveness of using deep-learning to identify tree crowns in Kiel city. 
+The city currently has extensive manually collected data on trees on city-owned grounds. This leaves out data about trees on any private ground, leaving a large data-gap when trying to assess green spaces in the city. 
+High-resolution aerial images are usually collected by plane once a year and theoretically present a great chance to fill this data-gap. Filling this gap would allow the city to better track changes in tree numbers and tree cover, allowing for comprehensive analysis of city climate, shade corridors, green islands, and greenery development. 
+Identifying individual trees combined with high-resolution aerial data further allows for tree species identification, as well as individual tree crown area, height, and health assessments.
 
-The broader goal is to support urban climate resilience and green infrastructure planning by identifying areas with limited tree cover. Future extensions include overlaying tree-cover maps with vulnerable-population locations such as schools, kindergartens, hospitals, clinics, and elderly-care homes to assess local canopy availability and prioritize greening interventions.
+Using pre-trained tree-segmentation models however comes with major challenges and uncertainties: 
+1. Most models are trained on summer images, while the city mostly collects images in spring. 
+2. Since publicly available data, which models are generally trained on, is lower-resolution, it is unclear what impact the higher resolution images have on model performance.
+3. Height data is shown to benefit crown-segmentation, but is rarely included in models.
+
+This project aims to adress these uncertainties, by finetuning an existing tree-segmentation model and testing it on different data sets. We also expand the model to include height data. We chose an existing tree segmentation model, since the task is quite complex and there are already a lot of models available. 
+Our findings also give insight into a possible workflow to adjust the model to other geographical areas, since it is more efficient and requires less data than to train a model from scratch. This is very helpful for further development regarding tree sementation, because data availability in particular is one of the main challenges in aerial image segmentation.
+
+
 
 ### Task Type
 
-[Image Classification]
+Image Classification - Instance Segmentation
 
 ### Results Summary
 
