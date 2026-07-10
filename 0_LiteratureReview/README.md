@@ -35,7 +35,7 @@ Approaches or solutions that have been tried before on similar projects.
 
 ---
 
-- **Source 4: Teng et al. (2025):**
+- **Source 4: Teng et al. (2025): Bringing SAM to new heights: Leveraging elevation data for tree crown segmentation from drone imagery**
 
   - [Link](https://arxiv.org/abs/2506.04970)
   - **Objective:** The paper investigates the suitability of the Segment Anything Model (SAM) for automatic individual tree crown instance segmentation in high-resolution drone imagery. It further evaluates whether integrating Digital Surface Model (DSM) elevation data and fine-tuning SAM can improve segmentation performance across three forest settings: boreal plantations, temperate forests, and tropical forests.
