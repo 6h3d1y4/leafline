@@ -9,7 +9,7 @@ dependencies = [
     "numpy",
     "matplotlib",
     "pillow",
-    "opencv-python",
+    "opencv-python-headless",
     "rasterio",
     "scikit-learn",
     "pandas",
@@ -17,6 +17,21 @@ dependencies = [
     "seaborn",
     "shapely",
     "deepforest>=2.1.0",
+    "torchmetrics==1.8.2",
+    "segmentation-models-pytorch==0.5.0",
+    "xarray==2025.12.0",
+    "deeptrees",
+    "leafmap",
+]
+
+[tool.uv]
+index-strategy = "unsafe-best-match"
+override-dependencies = [
+    # deeptrees pins torch==2.9.1 / torchvision==0.24.1; we use newer ROCm builds
+    "torch>=2.9.1",
+    "torchvision>=0.24.1",
+    # force headless opencv everywhere (supervision would pull in the GUI variant)
+    "opencv-python-headless>=4.0",
 ]
 
 [tool.uv.sources]

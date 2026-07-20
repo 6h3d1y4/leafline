@@ -81,6 +81,13 @@ target/
 # Dataset — large binary files, not tracked in version control
 Data/
 
+# Model checkpoints / weights — large binary files, not tracked in version control
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+3_Model/runs/*/checkpoints/
+
 # IPython
 profile_default/
 ipython_config.py

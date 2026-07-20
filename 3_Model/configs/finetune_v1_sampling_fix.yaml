@@ -1,0 +1,62 @@
+paths:
+  base: /home/leafline/leafline/Data/Kiel/TrainingAreas
+  pretrained: ~/pretrained_models/freudenberg2022.pt
+  output: /home/leafline/leafline/3_Model/runs/v1_sampling_fix
+
+data:
+  patch_size: 256
+
+  train_areas:
+    - area: HoernSued
+      gt_file: train/HoernSued_GroundTruth.shp
+    - area: HoernSued_summer
+    - area: SchuetzenparkMitte
+      gt_file: train/ShuetzenparkMitte_GroundTruth.shp
+    - area: SchuetzenparkMitte_summer
+    - area: SchuetzenparkOst
+      gt_file: train/ShuetzenparkOst_GroundTruth.shp
+    - area: SchuetzenparkOst_summer
+    - area: SchuetzenparkWest
+      gt_file: train/ShuetzenparkWest_GroundTruth.shp
+    - area: SchuetzenparkWest_summer
+
+  valid_areas:
+    - area: Schule
+      gt_file: valid/Schule_GroundTruth.shp
+    - area: Schwentine
+      gt_file: valid/Schwentine_GroundTruth.shp
+    - area: Veloroute
+      gt_file: valid/Veloroute_GroundTruth.shp
+
+  test_areas:
+    - area: BotGarten
+      gt_file: test/BotGarten_GroundTruth.shp
+    - area: HoernNord
+      gt_file: test/HoernNord_GroundTruth.shp
+
+model:
+  # 6 channels: R G B I NDVI nDOM — same as finetune_v1.yaml (the untouched original
+  # baseline), but trained fresh from the pretrained checkpoint into a separate output
+  # dir (runs/v1_sampling_fix) with KielPatchDataset(oversample_small=True) active,
+  # so runs/v1 stays intact as the pre-fix reference for comparison.
+  in_channels: 6
+  lr: 1.0e-4
+
+training:
+  batch_size: 8
+  num_workers: 4
+  max_epochs: 50
+  patience: 10
+
+# Same post-processing parameters as the baseline
+postprocessing:
+  mask_exp: 2
+  outline_multiplier: 5
+  outline_exp: 1
+  dist_exp: 0.5
+  sigma: 1
+  binary_threshold: 0.10
+  min_dist: 10
+  label_threshold: 0.10
+  area_min: 3
+  simplify: 0.3

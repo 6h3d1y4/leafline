@@ -1,0 +1,34 @@
+TRAINING SCHEDULE
+
+1. finetune baseline with NDVI+RGBI input with 100% spring 7.5cm images 
+	- augmentations: hflip, vflip, brightness and contrast adjust
+	- cross-fold to get best hyperparam setup
+	- expected outcome: spring 20cm and especially spring 7.5 cm get better
+
+2. if 20cm (spring and summer) get notably worse: conclusion: need seperate models for resolution
+    - 7.5 is already finetuned to Kiel from step 1
+    - now finetune baseline with 100% spring 20cm (RGBI+NDVI)
+            - augmentations: hflip, vflip, brightness and contrast adjust
+        	- cross-fold to get best hyperparam setup
+            - expected outcome: 20cm spring gets better
+
+3. if summer gets notably worse: finetune baseline with 50/50% summer and spring 20cm (RGBI+NDVI)
+	- augmentations: hflip, vflip, brightness and contrast adjust
+    - cross-fold to get best hyperparam setup
+	- expected outcome: spring is not as improved as in 1. but summer stays better
+
+4. if 2 and 3 show that spring and summer are not trainable together, conclusion: need 1 model for spring, 1 for summer
+	- spring 100% 20cm is already finetuned from step 2
+	- now finetune baseline with 100% summer
+		- augmentations: hflip, vflip, brightness and contrast adjust
+		- cross-fold to get best hyperparam setup
+        - expected outcome: summer gets better		
+		
+4. take best model and add height data: 
+	- finetune best model with added height input channel
+		- augmentations: hflip, vflip, brightness and contrast adjust
+		- learning rate: 2 rates: lower for existing than for height data
+		- cross-fold to get best hyperparam setup
+        - expected outcome: model performs better with height data
+
+5. if 4 is as expected, add height for other models (so that spring 7.5, spring 20, and summer 20 can be predicted with height)

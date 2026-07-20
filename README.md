@@ -23,8 +23,6 @@ Using pre-trained tree-segmentation models however comes with major challenges a
 This project aims to adress these uncertainties, by finetuning an existing tree-segmentation model and testing it on different data sets. We also expand the model to include height data. We chose an existing tree segmentation model, since the task is quite complex and there are already a lot of models available. 
 Our findings also give insight into a possible workflow to adjust the model to other geographical areas, since it is more efficient and requires less data than to train a model from scratch. This is very helpful for further development regarding tree sementation, because data availability in particular is one of the main challenges in aerial image segmentation.
 
-
-
 ### Task Type
 
 Image Classification - Instance Segmentation
