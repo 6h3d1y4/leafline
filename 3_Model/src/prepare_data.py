@@ -5,6 +5,8 @@ Pre-process training data for 6-channel fine-tuning.
 Creates in TrainingAreas/:
   stacked_6ch/{area}.tif        — 6-band float32 [0,1]: R G B I NDVI nDOM  (7.5cm spring)
   stacked_6ch/{area}_summer.tif — same format, DOP20 resampled to 7.5cm    (20cm summer)
+  stacked_6ch/{area}_native20_summer.tif — native 20cm DOP20 (no reprojection), test areas only, for baseline-comparable eval
+  stacked_6ch/{area}_native20_spring.tif — native 20cm DOP20-spring (no reprojection), test areas only, for baseline-comparable eval
   gt_bands/{area}_gt.tif        — 3-band float32 [0,1]: mask | outline | dist_transform
 
 Run once before training. Safe to re-run (skips existing files unless --overwrite).
@@ -15,6 +17,8 @@ Usage:
     .venv/bin/python 3_Model/src/prepare_data.py --config 3_Model/configs/finetune_v1.yaml
     # Add summer 20cm variants (optional, for domain bridging)
     .venv/bin/python 3_Model/src/prepare_data.py --config 3_Model/configs/finetune_v1.yaml --summer
+    # Add native-resolution 20cm eval stacks for test areas (baseline comparison)
+    .venv/bin/python 3_Model/src/prepare_data.py --config 3_Model/configs/finetune_v1.yaml --eval-resolutions
 """
 
 import argparse
@@ -251,12 +255,53 @@ def process_area_summer(area, dop20_dir, dop75_dir, ndom75_dir, out_stacked, out
     print(f"  {area}_summer: GT copied → {out_g.name}")
 
 
+def process_area_eval_native(area, dop_dir, ndom_dir, out_stacked, suffix, overwrite=False):
+    """
+    Build a stacked 6-ch TIF at the DOP's own native resolution (no reprojection),
+    for baseline-comparable test-set evaluation. Reuses load_and_stack, which is
+    already resolution-agnostic (uses dop_path as the reference grid and resamples
+    ndom onto it). Used for the 20cm-summer (DOP20) and 20cm-spring (DOP20-spring)
+    baseline-comparison categories — unlike the 7.5cm-grid `_summer` variant used
+    for training augmentation, this keeps the native low-res grid so evaluate.py's
+    metrics are directly comparable to baseline_model.ipynb's EVAL_PLAN.
+    """
+    out_s = out_stacked / f"{area}{suffix}.tif"
+    if out_s.exists() and not overwrite:
+        print(f"  {area}{suffix}: already exists, skipping")
+        return
+
+    dop_path = dop_dir / f"{area}.tif"
+    ndom_path = ndom_dir / f"{area}_nDOM.tif"
+
+    if not dop_path.exists():
+        print(f"  {area}{suffix}: DOP not found at {dop_path}, skipping")
+        return
+    if not ndom_path.exists():
+        print(f"  {area}{suffix}: nDOM not found at {ndom_path}, skipping")
+        return
+
+    print(f"  {area}{suffix}: stacking at native resolution ...", end="", flush=True)
+    stacked, profile, crs, transform = load_and_stack(dop_path, ndom_path)
+    H, W = stacked.shape[1], stacked.shape[2]
+    print(f" {H}×{W}")
+
+    out_stacked.mkdir(parents=True, exist_ok=True)
+    p = profile.copy()
+    p.update(count=6, dtype="float32", compress="lzw", photometric="MINISBLACK")
+    with rasterio.open(out_s, "w", **p) as dst:
+        dst.write(stacked)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Pre-process 6-channel training data")
     parser.add_argument("--config", required=True, help="Path to finetune YAML config")
     parser.add_argument("--overwrite", action="store_true", help="Re-process existing files")
     parser.add_argument("--summer", action="store_true",
                         help="Also process DOP20 summer variants for train/valid/test areas")
+    parser.add_argument("--eval-resolutions", action="store_true",
+                        help="Also build native-resolution 20cm summer + 20cm spring stacks "
+                             "for test_areas only, for baseline-comparable evaluation "
+                             "(consumed by evaluate.py --resolutions 20cm / 20cm-spring)")
     args = parser.parse_args()
 
     with open(args.config) as f:
@@ -266,6 +311,7 @@ def main():
     dop_dir   = base / "DOP7-5"
     ndom_dir  = base / "nDOM7-5"
     dop20_dir = base / "DOP20"
+    dop20spring_dir = base / "DOP20-spring"
     out_stacked = base / "stacked_6ch"
     out_gt      = base / "gt_bands"
 
@@ -295,6 +341,13 @@ def main():
                 if area.endswith("_summer"):
                     continue
                 process_area_summer(area, dop20_dir, dop_dir, ndom_dir, out_stacked, out_gt, args.overwrite)
+
+    if args.eval_resolutions:
+        print("\n── native-resolution eval variants (test areas only, baseline-comparable) ──")
+        for item in splits["test"]:
+            area = item["area"]
+            process_area_eval_native(area, dop20_dir, ndom_dir, out_stacked, "_native20_summer", args.overwrite)
+            process_area_eval_native(area, dop20spring_dir, ndom_dir, out_stacked, "_native20_spring", args.overwrite)
 
     print("\nDone.")
     print(f"  Stacked TIFs : {out_stacked}")
