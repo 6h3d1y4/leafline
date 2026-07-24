@@ -45,6 +45,7 @@ training:
   num_workers: 4
   max_epochs: 50
   patience: 10
+  oversample_small: false  # Höhen-Ablation von v1 → gleiche Sampling-Einstellung wie v1
 
 # Same post-processing parameters as the baseline
 postprocessing:

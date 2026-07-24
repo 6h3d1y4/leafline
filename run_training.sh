@@ -13,7 +13,12 @@ set -euo pipefail
 SESSION="kiel-training"
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 VENV="$ROOT/.venv/bin/python"
-CONFIG="$ROOT/3_Model/configs/finetune_v1.yaml"
+# Config als 2. Argument überschreibbar: ./run_training.sh start <config> [prepare-args]
+# Default = Schedule Schritt 1 (100% Frühjahr 7.5cm, RGBI+NDVI).
+CONFIG="${2:-$ROOT/3_Model/configs/finetune_step1_spring75.yaml}"
+# prepare_data-Flags (3. Argument, z.B. "--summer" oder "--eval-resolutions").
+# Schritt 1 braucht nur die Basis-Frühjahrs-Stacks → default leer.
+PREPARE_ARGS="${3:-}"
 LOG="$ROOT/3_Model/runs/pipeline.log"
 
 mkdir -p "$ROOT/3_Model/runs"
@@ -99,16 +104,19 @@ cd "$ROOT"
 
 VENV="$VENV"
 CONFIG="$CONFIG"
+PREPARE_ARGS="$PREPARE_ARGS"
 
 echo ""
 echo "╔══════════════════════════════════════════════════╗"
 echo "║  Kiel Fine-Tuning Pipeline                      ║"
 echo "╚══════════════════════════════════════════════════╝"
+echo "  Config       : \$CONFIG"
+echo "  prepare-args : \${PREPARE_ARGS:-(keine)}"
 echo ""
 
-# ── Schritt 1: Sommer-Stacks vorbereiten ─────────────────────────────────
-echo "[\$(date '+%H:%M:%S')] ── Schritt 1: prepare_data.py --summer ──"
-"\$VENV" 3_Model/src/prepare_data.py --config "\$CONFIG" --summer
+# ── Schritt 1: Daten vorbereiten (idempotent, überspringt Vorhandenes) ───
+echo "[\$(date '+%H:%M:%S')] ── Schritt 1: prepare_data.py \$PREPARE_ARGS ──"
+"\$VENV" 3_Model/src/prepare_data.py --config "\$CONFIG" \$PREPARE_ARGS
 STEP1=\$?
 if [ \$STEP1 -ne 0 ]; then
   echo "[\$(date '+%H:%M:%S')] FEHLER in prepare_data.py (Exit \$STEP1)"

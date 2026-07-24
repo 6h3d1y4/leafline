@@ -47,6 +47,7 @@ training:
   num_workers: 4
   max_epochs: 50
   patience: 10
+  oversample_small: true   # das definierende Merkmal dieses Laufs (vs. v1)
 
 # Same post-processing parameters as the baseline
 postprocessing:

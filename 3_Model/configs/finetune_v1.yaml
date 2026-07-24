@@ -45,6 +45,7 @@ training:
   num_workers: 4
   max_epochs: 50
   patience: 10
+  oversample_small: false  # v1 = Referenz ohne Oversampling (Gegenstück zu sampling_fix)
 
 # Same post-processing parameters as the baseline
 postprocessing:

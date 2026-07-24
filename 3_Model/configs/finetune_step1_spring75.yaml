@@ -1,0 +1,76 @@
+# Schedule Schritt 1: finetune baseline auf 100% Frühjahr 7.5cm, RGBI+NDVI (kein nDOM).
+# Augmentierung bewusst minimal (hflip/vflip/brightness/contrast) — die spektrale
+# Sommer→Frühjahr-Simulation (nir/ndvi/noise) ist AUS, weil hier bereits 100% Frühjahr:
+# so ist der reine Finetune-Effekt isoliert. Erwartetes Ergebnis (SCHEDULE.txt): 7.5cm-
+# Frühjahr und 20cm-Frühjahr werden besser. Danach evaluieren via
+#   evaluate.py --config <this> --checkpoint runs/step1_spring75/checkpoints/best.pt --split test
+# und die 7.5cm/20cm-spring-Zeilen gegen die Baseline vergleichen.
+paths:
+  base: /home/leafline/leafline/Data/Kiel/TrainingAreas
+  pretrained: ~/pretrained_models/freudenberg2022.pt
+  output: /home/leafline/leafline/3_Model/runs/step1_spring75
+
+data:
+  patch_size: 256
+
+  # 100% Frühjahr 7.5cm — KEINE _summer-Varianten (im Unterschied zu finetune_v1*).
+  train_areas:
+    - area: HoernSued
+      gt_file: train/HoernSued_GroundTruth.shp
+    - area: SchuetzenparkMitte
+      gt_file: train/ShuetzenparkMitte_GroundTruth.shp
+    - area: SchuetzenparkOst
+      gt_file: train/ShuetzenparkOst_GroundTruth.shp
+    - area: SchuetzenparkWest
+      gt_file: train/ShuetzenparkWest_GroundTruth.shp
+
+  valid_areas:
+    - area: Schule
+      gt_file: valid/Schule_GroundTruth.shp
+    - area: Schwentine
+      gt_file: valid/Schwentine_GroundTruth.shp
+    - area: Veloroute
+      gt_file: valid/Veloroute_GroundTruth.shp
+
+  test_areas:
+    - area: BotGarten
+      gt_file: test/BotGarten_GroundTruth.shp
+    - area: HoernNord
+      gt_file: test/HoernNord_GroundTruth.shp
+
+  # Nur die im Schedule genannten Augmentierungen. Fehlt dieser Block, sind alle
+  # Komponenten an (siehe dataset.py::DEFAULT_AUGMENT) — hier explizit gepinnt.
+  augment:
+    hflip: true
+    vflip: true
+    brightness: true
+    contrast: true
+    nir_scale: false
+    ndvi_scale: false
+    spectral_noise: false
+
+model:
+  in_channels: 5   # R G B I NDVI — kein nDOM (Höhe kommt laut Schedule erst später)
+  lr: 1.0e-4
+
+training:
+  batch_size: 8
+  num_workers: 4
+  max_epochs: 50
+  patience: 10
+  oversample_small: false   # off-plan für Schritt 1; isoliert den Sampling-Effekt
+
+# Baseline-Postprocessing. Hinweis: debug_predictions.ipynb fand min_dist=30, sigma=2
+# klar besser gegen Über-Segmentierung — das ist eine reine Eval-Frage (kein Training),
+# hier bewusst auf Baseline-Default belassen; beim Evaluieren separat gegentesten.
+postprocessing:
+  mask_exp: 2
+  outline_multiplier: 5
+  outline_exp: 1
+  dist_exp: 0.5
+  sigma: 1
+  binary_threshold: 0.10
+  min_dist: 10
+  label_threshold: 0.10
+  area_min: 3
+  simplify: 0.3

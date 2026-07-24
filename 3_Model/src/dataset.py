@@ -51,25 +51,54 @@ def channel_indices_for(in_channels: int) -> list[int] | None:
     raise ValueError(f"Unsupported in_channels: {in_channels} (expected 5 or 6)")
 
 
-def _augment(r_patch: torch.Tensor) -> torch.Tensor:
-    """In-place spring-aware spectral + geometric augmentation."""
+# Default augmentation (all components on) reproduces the original spring-aware
+# behaviour. Each component is individually toggleable via the config's `data.augment`
+# section so single factors can be isolated — e.g. Schedule Schritt 1 runs 100% spring
+# data and therefore switches the summer→spring spectral simulation (nir/ndvi/noise) OFF,
+# leaving only geometric flips + brightness/contrast.
+DEFAULT_AUGMENT = {
+    "hflip": True,
+    "vflip": True,
+    "brightness": True,     # RGB per-channel brightness jitter (ch 0-2)
+    "contrast": True,       # RGB per-channel contrast shift    (ch 0-2)
+    "nir_scale": True,      # NIR mild scaling                  (ch 3)
+    "ndvi_scale": True,     # NDVI down-scaling, spring sim      (ch 4)
+    "spectral_noise": True, # Gaussian noise                    (ch 0-4)
+}
 
-    # --- RGB brightness / contrast jitter (channels 0-2) ---
-    brightness = torch.empty(3, 1, 1).uniform_(0.75, 1.25)
-    contrast_shift = torch.empty(3, 1, 1).uniform_(-0.1, 0.1)
-    r_patch[:3] = (r_patch[:3] * brightness + contrast_shift).clamp(0.0, 1.0)
+
+def _augment(r_patch: torch.Tensor, cfg: dict) -> torch.Tensor:
+    """In-place spectral augmentation; each component gated by `cfg` (see DEFAULT_AUGMENT).
+
+    Robust to 5- or 6-channel patches: NIR/NDVI/noise only touch channels that exist,
+    and nDOM (ch 5) is never modified (height is season-independent)."""
+    n_ch = r_patch.shape[0]
+
+    # --- RGB brightness jitter (channels 0-2) ---
+    if cfg.get("brightness", True):
+        brightness = torch.empty(3, 1, 1).uniform_(0.75, 1.25)
+        r_patch[:3] = (r_patch[:3] * brightness).clamp(0.0, 1.0)
+
+    # --- RGB contrast shift (channels 0-2) ---
+    if cfg.get("contrast", True):
+        contrast_shift = torch.empty(3, 1, 1).uniform_(-0.1, 0.1)
+        r_patch[:3] = (r_patch[:3] + contrast_shift).clamp(0.0, 1.0)
 
     # --- NIR mild scaling (channel 3) ---
-    nir_scale = torch.empty(1).uniform_(0.7, 1.1).item()
-    r_patch[3] = r_patch[3].mul(nir_scale).clamp(0.0, 1.0)
+    if cfg.get("nir_scale", True) and n_ch > 3:
+        nir_scale = torch.empty(1).uniform_(0.7, 1.1).item()
+        r_patch[3] = r_patch[3].mul(nir_scale).clamp(0.0, 1.0)
 
     # --- NDVI spring simulation (channel 4): scale down to mimic bare foliage ---
-    ndvi_scale = torch.empty(1).uniform_(0.2, 1.0).item()
-    r_patch[4] = r_patch[4].mul(ndvi_scale).clamp(0.0, 1.0)
+    if cfg.get("ndvi_scale", True) and n_ch > 4:
+        ndvi_scale = torch.empty(1).uniform_(0.2, 1.0).item()
+        r_patch[4] = r_patch[4].mul(ndvi_scale).clamp(0.0, 1.0)
 
     # --- Spectral Gaussian noise on channels 0-4 (not nDOM) ---
-    noise = torch.randn(5, r_patch.shape[1], r_patch.shape[2]) * 0.02
-    r_patch[:5] = (r_patch[:5] + noise).clamp(0.0, 1.0)
+    if cfg.get("spectral_noise", True):
+        k = min(5, n_ch)
+        noise = torch.randn(k, r_patch.shape[1], r_patch.shape[2]) * 0.02
+        r_patch[:k] = (r_patch[:k] + noise).clamp(0.0, 1.0)
 
     return r_patch
 
@@ -94,15 +123,19 @@ class KielPatchDataset(IterableDataset):
         oversample_small: bool = False,
         small_area_thresh_m2: float = 16.0,
         oversample_frac: float = 0.5,
+        augment_config: dict | None = None,
     ):
         """
         channel_indices: subset of the 6 raster channels to yield (see channel_indices_for).
         oversample_small: if True, a fraction of patches per area are centered on GT crowns
             smaller than small_area_thresh_m2 instead of drawn uniformly at random — small/short
             crowns are systematically underrepresented in the raw training footprint otherwise.
+        augment_config: per-component augmentation toggles (see DEFAULT_AUGMENT). Merged over
+            the defaults, so passing None (or omitting keys) keeps the full spring-aware behaviour.
         """
         self.patch_size = patch_size
         self.augment = augment
+        self.augment_cfg = {**DEFAULT_AUGMENT, **(augment_config or {})}
         self.channel_indices = channel_indices
         self.oversample_small = oversample_small
         self.small_area_thresh_m2 = small_area_thresh_m2
@@ -183,14 +216,14 @@ class KielPatchDataset(IterableDataset):
 
                 if self.augment:
                     # Geometric
-                    if torch.rand(1).item() > 0.5:
+                    if self.augment_cfg.get("hflip", True) and torch.rand(1).item() > 0.5:
                         r_patch = torch.flip(r_patch, dims=[2])
                         t_patch = torch.flip(t_patch, dims=[2])
-                    if torch.rand(1).item() > 0.5:
+                    if self.augment_cfg.get("vflip", True) and torch.rand(1).item() > 0.5:
                         r_patch = torch.flip(r_patch, dims=[1])
                         t_patch = torch.flip(t_patch, dims=[1])
-                    # Spectral (spring-aware)
-                    r_patch = _augment(r_patch)
+                    # Spectral (per-component toggles in augment_cfg)
+                    r_patch = _augment(r_patch, self.augment_cfg)
 
                 patches_yielded += 1
                 yield torch.nan_to_num(r_patch), torch.nan_to_num(t_patch)
