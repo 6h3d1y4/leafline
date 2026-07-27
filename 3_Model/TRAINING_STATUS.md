@@ -49,6 +49,46 @@ dafür ausgebaut und erstmals ein sauberer Baseline-Vergleich erzeugt.
 Vollständige, live aus den CSVs berechnete Auswertung inkl. Diagrammen:
 `3_Model/results_step1_vs_baseline.ipynb`.
 
+### Nachtrag — Schedule-Schritt 2 trainiert & evaluiert (27.07.)
+
+**Run `step2_spring20`** (`configs/finetune_step2_spring20.yaml`): 5 Kanäle,
+**100% Frühjahr 20cm** (native `_native20_spring`-Stacks aus `DOP20-spring/`, gebaut
+von `prepare_data.py --train-spring20`), minimale Augmentierung. Bestes pixelweises
+Val-F1 **0.696 @ Epoche 14** (Early Stop @24).
+
+Gesamtmatrix (kronenweise Mikro-F1, einheitliches PP 10/1):
+
+| Auflösung | baseline | step1 (Frühjahr 7.5) | step2 (Frühjahr 20) |
+|---|---|---|---|
+| **7.5cm** (Frühjahr) | 0.000 | **0.120** | 0.021 |
+| **20cm** (Sommer) | **0.340** | 0.052 | 0.008 |
+| **20cm-spring** (Frühjahr) | 0.044 | 0.041 | **0.098** |
+
+- **Schritt-2-Ziel erreicht:** step2 hebt 20cm-spring auf **0.098** (> 2× Baseline
+  0.044 / step1 0.041) — das im Schedule erwartete „20cm spring gets better".
+- **Diagonale:** jedes Modell ist nur auf seiner Trainingsdomäne stark (step1@7.5cm,
+  step2@20cm-spring, baseline@20cm-Sommer).
+- **Jahreszeit als eigener Faktor:** bei gleicher 20cm-Auflösung bricht step2 (Frühjahr)
+  auf Sommer ein (0.008); die Baseline (Sommer) ist bei Frühjahr schwach (0.044).
+  Auflösung *und* Saison verursachen je einen großen Domänen-Sprung.
+- **Kiel-Einordnung** (fliegt Frühjahr): die relevanten Zellen 7.5cm (0.120) und
+  20cm-spring (0.098) liegen nun klar über der Baseline.
+- Caveat: PP ungetunt (step2 über-segmentiert 7.5cm: 1044 Vorhersagen).
+
+Beim Vorbereiten fiel ein **Config-Tippfehler** auf: `gt_file: train/Shuetzenpark…`
+(ohne „c") statt `Schuetzenpark…`. Latent bei 7.5cm (GT-`.tif` existierte schon →
+`process_area` übersprang die Shapefile), brach aber Schritt 2 (neue GTs). In allen
+sechs Configs korrigiert.
+
+Gesamtauswertung aller drei Modelle: `3_Model/results_all_steps.ipynb`.
+
+### Nächste Schritte (aktualisiert)
+1. **Postprocessing pro Modell×Auflösung tunen**, dann die On-Domain-Zahlen final ziehen.
+2. **Schedule-Schritt 3** (50/50 Sommer+Frühjahr 20cm) — testet ein saison-übergreifendes
+   20cm-Modell; für Kiels Frühjahrs-Fokus evtl. nachrangig.
+3. **Schedule-Schritt 4/5 — Höhenkanal (nDOM)** zu step1/step2 hinzufügen; laut v1-Ablation
+   der größte verbleibende Hebel und der Endzweck des Schedules.
+
 ### Infrastruktur-/Code-Änderungen (seit 16.07., committet)
 - `dataset.py`: Augmentierung pro Komponente per Config schaltbar
   (`data.augment`), robust für 5-/6-Kanal-Patches.
