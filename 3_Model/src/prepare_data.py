@@ -6,8 +6,9 @@ Creates in TrainingAreas/:
   stacked_6ch/{area}.tif        — 6-band float32 [0,1]: R G B I NDVI nDOM  (7.5cm spring)
   stacked_6ch/{area}_summer.tif — same format, DOP20 resampled to 7.5cm    (20cm summer)
   stacked_6ch/{area}_native20_summer.tif — native 20cm DOP20 (no reprojection), test areas only, for baseline-comparable eval
-  stacked_6ch/{area}_native20_spring.tif — native 20cm DOP20-spring (no reprojection), test areas only, for baseline-comparable eval
+  stacked_6ch/{area}_native20_spring.tif — native 20cm DOP20-spring (no reprojection). --eval-resolutions: test areas (image only). --train-spring20: train/valid areas (+ GT)
   gt_bands/{area}_gt.tif        — 3-band float32 [0,1]: mask | outline | dist_transform
+  gt_bands/{area}_native20_spring_gt.tif — same, at native 20cm grid (--train-spring20)
 
 Run once before training. Safe to re-run (skips existing files unless --overwrite).
 
@@ -19,6 +20,8 @@ Usage:
     .venv/bin/python 3_Model/src/prepare_data.py --config 3_Model/configs/finetune_v1.yaml --summer
     # Add native-resolution 20cm eval stacks for test areas (baseline comparison)
     .venv/bin/python 3_Model/src/prepare_data.py --config 3_Model/configs/finetune_v1.yaml --eval-resolutions
+    # Build native 20cm spring train/valid stacks + GT (Schedule Schritt 2)
+    .venv/bin/python 3_Model/src/prepare_data.py --config 3_Model/configs/finetune_step2_spring20.yaml --train-spring20
 """
 
 import argparse
@@ -164,25 +167,30 @@ def rasterize_gt(gdf, shape, transform, crs):
     return mask.astype(np.float32), outline, dist_norm
 
 
-def process_area(area, gt_shp, dop_dir, ndom_dir, out_stacked, out_gt, overwrite=False):
-    out_s = out_stacked / f"{area}.tif"
-    out_g = out_gt / f"{area}_gt.tif"
+def process_area(area, gt_shp, dop_dir, ndom_dir, out_stacked, out_gt, overwrite=False, suffix=""):
+    """Build stacked_6ch/{area}{suffix}.tif + gt_bands/{area}{suffix}_gt.tif at the DOP's
+    native grid. Resolution-agnostic: pass dop_dir=DOP7-5 (7.5cm, suffix="") for the base
+    spring stacks, or dop_dir=DOP20-spring (suffix="_native20_spring") for the native 20cm
+    spring train/valid variants (Schedule Schritt 2). GT is rasterized at whatever grid the
+    DOP defines, so it matches the stack even at 20cm."""
+    out_s = out_stacked / f"{area}{suffix}.tif"
+    out_g = out_gt / f"{area}{suffix}_gt.tif"
 
     if out_s.exists() and out_g.exists() and not overwrite:
-        print(f"  {area}: already exists, skipping")
+        print(f"  {area}{suffix}: already exists, skipping")
         return
 
     dop_path = dop_dir / f"{area}.tif"
     ndom_path = ndom_dir / f"{area}_nDOM.tif"
 
     if not dop_path.exists():
-        print(f"  {area}: DOP not found at {dop_path}, skipping")
+        print(f"  {area}{suffix}: DOP not found at {dop_path}, skipping")
         return
     if not ndom_path.exists():
-        print(f"  {area}: nDOM not found at {ndom_path}, skipping")
+        print(f"  {area}{suffix}: nDOM not found at {ndom_path}, skipping")
         return
 
-    print(f"  {area}: stacking rasters ...", end="", flush=True)
+    print(f"  {area}{suffix}: stacking rasters ...", end="", flush=True)
     stacked, profile, crs, transform = load_and_stack(dop_path, ndom_path)
     H, W = stacked.shape[1], stacked.shape[2]
     print(f" {H}×{W}")
@@ -302,6 +310,10 @@ def main():
                         help="Also build native-resolution 20cm summer + 20cm spring stacks "
                              "for test_areas only, for baseline-comparable evaluation "
                              "(consumed by evaluate.py --resolutions 20cm / 20cm-spring)")
+    parser.add_argument("--train-spring20", action="store_true",
+                        help="Build native 20cm spring stacks + rasterized GT for train/valid "
+                             "areas whose name ends in _native20_spring (Schedule Schritt 2, "
+                             "100%% Frühjahr 20cm). Requires DOP20-spring/ for those areas.")
     args = parser.parse_args()
 
     with open(args.config) as f:
@@ -325,8 +337,8 @@ def main():
         print(f"\n── {split} ──")
         for item in area_list:
             area = item["area"]
-            if area.endswith("_summer"):
-                continue  # handled below
+            if area.endswith("_summer") or area.endswith("_native20_spring"):
+                continue  # resolution variants handled by --summer / --train-spring20
             gt_shp = base / item["gt_file"] if item.get("gt_file") else None
             process_area(area, gt_shp, dop_dir, ndom_dir, out_stacked, out_gt, args.overwrite)
 
@@ -348,6 +360,19 @@ def main():
             area = item["area"]
             process_area_eval_native(area, dop20_dir, ndom_dir, out_stacked, "_native20_summer", args.overwrite)
             process_area_eval_native(area, dop20spring_dir, ndom_dir, out_stacked, "_native20_spring", args.overwrite)
+
+    if args.train_spring20:
+        print("\n── native 20cm spring train/valid variants (Schedule Schritt 2) ──")
+        for split in ("train", "valid"):
+            print(f"  ── {split} ──")
+            for item in splits[split]:
+                area = item["area"]
+                if not area.endswith("_native20_spring"):
+                    continue
+                base_area = area[: -len("_native20_spring")]
+                gt_shp = base / item["gt_file"] if item.get("gt_file") else None
+                process_area(base_area, gt_shp, dop20spring_dir, ndom_dir,
+                             out_stacked, out_gt, args.overwrite, suffix="_native20_spring")
 
     print("\nDone.")
     print(f"  Stacked TIFs : {out_stacked}")

@@ -122,6 +122,7 @@ Maßnahme sauber messen kann.
 | Config | Kanäle | Daten | Besonderheit |
 |---|---|---|---|
 | `finetune_step1_spring75.yaml` | 5 (RGBI+NDVI) | 100% Frühjahr 7.5cm | **Schedule Schritt 1**, minimale Augmentierung |
+| `finetune_step2_spring20.yaml` | 5 (RGBI+NDVI) | 100% Frühjahr 20cm | **Schedule Schritt 2**, braucht `prepare_data.py --train-spring20` (baut `_native20_spring`-Stacks aus `DOP20-spring/`) |
 | `finetune_v1.yaml` | 6 (+nDOM) | Frühjahr + `_summer` | erster Baseline-Finetune (bestes val_F1 bisher) |
 | `finetune_v1_no_ndom.yaml` | 5 | wie v1 | Höhen-Ablation von v1 |
 | `finetune_v1_sampling_fix.yaml` | 6 | wie v1 | `oversample_small: true` |

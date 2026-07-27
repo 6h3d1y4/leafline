@@ -1,0 +1,82 @@
+# Schedule Schritt 2: finetune baseline auf 100% Frühjahr 20cm, RGBI+NDVI (kein nDOM).
+# Ausgelöst durch Schritt 1: das 7.5cm-Modell bricht bei 20cm ein (0.339→0.052) →
+# separates Modell je Auflösung. Analog zu finetune_step1_spring75.yaml, aber die
+# Trainings-/Valid-Gebiete liegen als native 20cm-Frühjahr-Stacks vor (Suffix
+# _native20_spring, gebaut von prepare_data.py --train-spring20 aus DOP20-spring/).
+# Augmentierung minimal (nur hflip/vflip/brightness/contrast) — isoliert den reinen
+# Finetune-Effekt. Erwartetes Ergebnis (SCHEDULE.txt): 20cm-spring wird besser.
+#
+# Vor dem Training als nda:
+#   1) prüfen, dass DOP20-spring/ die Trainingsgebiete enthält (ls DOP20-spring/)
+#   2) .venv/bin/python 3_Model/src/prepare_data.py --config <this> --train-spring20
+#   3) .venv/bin/python 3_Model/src/prepare_data.py --config <this> --eval-resolutions  (für die Test-Eval)
+paths:
+  base: /home/leafline/leafline/Data/Kiel/TrainingAreas
+  pretrained: ~/pretrained_models/freudenberg2022.pt
+  output: /home/leafline/leafline/3_Model/runs/step2_spring20
+
+data:
+  # 20cm: gleiche Patch-Größe wie das Baseline-Notebook bei 20cm (256).
+  patch_size: 256
+
+  # 100% Frühjahr 20cm. Die _native20_spring-Namen steuern, dass train.py/dataset.py
+  # stacked_6ch/{area}_native20_spring.tif + gt_bands/{area}_native20_spring_gt.tif lesen.
+  # gt_file = dieselbe Shapefile wie 7.5cm (Kronen-Positionen sind auflösungsunabhängig;
+  # die Rasterisierung passiert beim prepare auf dem 20cm-Grid).
+  train_areas:
+    - area: HoernSued_native20_spring
+      gt_file: train/HoernSued_GroundTruth.shp
+    - area: SchuetzenparkMitte_native20_spring
+      gt_file: train/ShuetzenparkMitte_GroundTruth.shp
+    - area: SchuetzenparkOst_native20_spring
+      gt_file: train/ShuetzenparkOst_GroundTruth.shp
+    - area: SchuetzenparkWest_native20_spring
+      gt_file: train/ShuetzenparkWest_GroundTruth.shp
+
+  valid_areas:
+    - area: Schule_native20_spring
+      gt_file: valid/Schule_GroundTruth.shp
+    - area: Schwentine_native20_spring
+      gt_file: valid/Schwentine_GroundTruth.shp
+    - area: Veloroute_native20_spring
+      gt_file: valid/Veloroute_GroundTruth.shp
+
+  # Test = Basisnamen; evaluate.py --resolutions liest die _native20_* Eval-Stacks
+  # (aus --eval-resolutions) und die 7.5cm-Stacks selbst.
+  test_areas:
+    - area: BotGarten
+      gt_file: test/BotGarten_GroundTruth.shp
+    - area: HoernNord
+      gt_file: test/HoernNord_GroundTruth.shp
+
+  augment:
+    hflip: true
+    vflip: true
+    brightness: true
+    contrast: true
+    nir_scale: false
+    ndvi_scale: false
+    spectral_noise: false
+
+model:
+  in_channels: 5   # R G B I NDVI — kein nDOM
+  lr: 1.0e-4
+
+training:
+  batch_size: 8
+  num_workers: 4
+  max_epochs: 50
+  patience: 10
+  oversample_small: false
+
+postprocessing:
+  mask_exp: 2
+  outline_multiplier: 5
+  outline_exp: 1
+  dist_exp: 0.5
+  sigma: 1
+  binary_threshold: 0.10
+  min_dist: 10
+  label_threshold: 0.10
+  area_min: 3
+  simplify: 0.3
