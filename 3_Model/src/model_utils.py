@@ -1,12 +1,15 @@
 """
-Load the freudenberg2022 JIT checkpoint into a 5- or 6-channel DeepTreesModel.
+Load the freudenberg2022 JIT checkpoint into a 4-, 5- or 6-channel DeepTreesModel.
 
-The JIT model was trained on 4-channel RGBI input. We expand, e.g. for in_channels=6:
-  seg_model  first conv:  [64, 4, K, K] → [64, 6, K, K]
-  dist_model first conv:  [64, 6, K, K] → [64, 8, K, K]  (4+2 seg outputs → 6+2)
+The JIT model was trained on 5-channel RGBI+NDVI input (verified: seg encoder conv1
+is [64, 5, 7, 7], dist encoder conv1 is [64, 7, 7, 7] = 5 image + 2 seg outputs).
+The first-conv adapter handles any target channel count:
+  in_channels=6: expand 5→6  (add nDOM as mean of pretrained channels)
+  in_channels=5: exact match (no change)
+  in_channels=4: reduce 5→4  (drop NDVI = the trailing image channel → keep RGBI weights)
 
-New channels are initialized as the mean of the existing pretrained channels.
-All other layers are transferred exactly.
+Added channels are the mean of the pretrained channels; on reduction the leading
+(retained) channels keep their pretrained weights. All other layers transfer exactly.
 """
 
 import torch
@@ -18,6 +21,14 @@ def _expand_first_conv(old_w: torch.Tensor, new_in_ch: int) -> torch.Tensor:
     out_ch, old_in_ch, kH, kW = old_w.shape
     if new_in_ch == old_in_ch:
         return old_w.clone()
+
+    if new_in_ch < old_in_ch:
+        # Fewer input channels than pretrained (e.g. drop NDVI → RGBI): keep the
+        # pretrained weights for the retained LEADING channels. Exact for the seg
+        # encoder (image channels are R G B I NDVI, so [:4] = RGBI weights). For the
+        # dist encoder (image + 2 seg outputs) this drops a trailing slot rather than
+        # NDVI, a minor warm-start imperfection that finetuning re-learns.
+        return old_w[:, :new_in_ch].clone()
 
     new_w = old_w.mean(dim=1, keepdim=True).expand(out_ch, new_in_ch, kH, kW).clone()
     new_w[:, :old_in_ch] = old_w

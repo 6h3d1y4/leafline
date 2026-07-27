@@ -41,14 +41,17 @@ def channel_indices_for(in_channels: int) -> list[int] | None:
     """
     Map model.in_channels (config) to the raster channel subset to feed the model.
 
-    6 = full stack (R G B I NDVI nDOM). 5 = drop nDOM (channel 5) — used for the
-    height-ablation variant that measures the nDOM channel's contribution.
+    6 = full stack (R G B I NDVI nDOM). 5 = drop nDOM (channel 5) — height ablation.
+    4 = R G B I only (drop NDVI + nDOM) — tests whether the derived NDVI channel adds
+    anything for spring imagery (NDVI is a summer-oriented greenness index).
     """
     if in_channels == 6:
         return None
     if in_channels == 5:
         return [0, 1, 2, 3, 4]
-    raise ValueError(f"Unsupported in_channels: {in_channels} (expected 5 or 6)")
+    if in_channels == 4:
+        return [0, 1, 2, 3]
+    raise ValueError(f"Unsupported in_channels: {in_channels} (expected 4, 5 or 6)")
 
 
 # Default augmentation (all components on) reproduces the original spring-aware
