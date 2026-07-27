@@ -60,17 +60,19 @@ training:
   patience: 10
   oversample_small: false   # off-plan für Schritt 1; isoliert den Sampling-Effekt
 
-# Baseline-Postprocessing. Hinweis: debug_predictions.ipynb fand min_dist=30, sigma=2
-# klar besser gegen Über-Segmentierung — das ist eine reine Eval-Frage (kein Training),
-# hier bewusst auf Baseline-Default belassen; beim Evaluieren separat gegentesten.
+# Postprocessing für 7.5cm getunt via pp_sweep.py (runs/step1_spring75/pp_sweep_7.5cm.csv):
+# min_dist=30, sigma=2 gegen Über-Segmentierung. Hebt die 7.5cm-F1 von 0.120 (Default 10/1)
+# auf ~0.150 — der Gewinn kommt aus der Precision (weniger Fragmente: pred 672→385 bei
+# GT=732); der Recall (~0.12) bleibt über den ganzen Sweep flach, ist also die Modell-Decke,
+# nicht durch PP behebbar. Werte gelten für 7.5cm; 20cm braucht ggf. eigenes Tuning.
 postprocessing:
   mask_exp: 2
   outline_multiplier: 5
   outline_exp: 1
   dist_exp: 0.5
-  sigma: 1
+  sigma: 2
   binary_threshold: 0.10
-  min_dist: 10
+  min_dist: 30
   label_threshold: 0.10
   area_min: 3
   simplify: 0.3
