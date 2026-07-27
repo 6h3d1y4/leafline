@@ -69,12 +69,16 @@ training:
   patience: 10
   oversample_small: false
 
+# Postprocessing für 20cm-spring getunt via pp_sweep.py (runs/step2_spring20/pp_sweep_20cm-spring.csv):
+# min_dist=10 (Default), sigma=3. Hebt 20cm-spring-F1 von 0.098 (10/1) auf 0.113. Anders als
+# bei 7.5cm hilft hier NUR die Glättung (sigma) — großes min_dist stürzt den Recall ab
+# (Unter-Segmentierung, da 20cm ~2.7× weniger Pixel/Krone). Werte gelten für 20cm.
 postprocessing:
   mask_exp: 2
   outline_multiplier: 5
   outline_exp: 1
   dist_exp: 0.5
-  sigma: 1
+  sigma: 3
   binary_threshold: 0.10
   min_dist: 10
   label_threshold: 0.10
