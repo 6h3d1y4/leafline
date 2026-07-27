@@ -22,6 +22,8 @@ Usage:
     .venv/bin/python 3_Model/src/prepare_data.py --config 3_Model/configs/finetune_v1.yaml --eval-resolutions
     # Build native 20cm spring train/valid stacks + GT (Schedule Schritt 2)
     .venv/bin/python 3_Model/src/prepare_data.py --config 3_Model/configs/finetune_step2_spring20.yaml --train-spring20
+    # Build native 20cm summer + spring train/valid stacks + GT (Schedule Schritt 3, 50/50)
+    .venv/bin/python 3_Model/src/prepare_data.py --config 3_Model/configs/finetune_step3_mix20.yaml --train-spring20 --train-summer20
 """
 
 import argparse
@@ -314,6 +316,10 @@ def main():
                         help="Build native 20cm spring stacks + rasterized GT for train/valid "
                              "areas whose name ends in _native20_spring (Schedule Schritt 2, "
                              "100%% Frühjahr 20cm). Requires DOP20-spring/ for those areas.")
+    parser.add_argument("--train-summer20", action="store_true",
+                        help="Build native 20cm summer stacks + rasterized GT for train/valid "
+                             "areas whose name ends in _native20_summer (Schedule Schritt 3, "
+                             "50/50 Sommer+Frühjahr 20cm). Requires DOP20/ for those areas.")
     args = parser.parse_args()
 
     with open(args.config) as f:
@@ -373,6 +379,19 @@ def main():
                 gt_shp = base / item["gt_file"] if item.get("gt_file") else None
                 process_area(base_area, gt_shp, dop20spring_dir, ndom_dir,
                              out_stacked, out_gt, args.overwrite, suffix="_native20_spring")
+
+    if args.train_summer20:
+        print("\n── native 20cm summer train/valid variants (Schedule Schritt 3) ──")
+        for split in ("train", "valid"):
+            print(f"  ── {split} ──")
+            for item in splits[split]:
+                area = item["area"]
+                if not area.endswith("_native20_summer"):
+                    continue
+                base_area = area[: -len("_native20_summer")]
+                gt_shp = base / item["gt_file"] if item.get("gt_file") else None
+                process_area(base_area, gt_shp, dop20_dir, ndom_dir,
+                             out_stacked, out_gt, args.overwrite, suffix="_native20_summer")
 
     print("\nDone.")
     print(f"  Stacked TIFs : {out_stacked}")

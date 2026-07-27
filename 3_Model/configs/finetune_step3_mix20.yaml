@@ -1,0 +1,92 @@
+# Schedule Schritt 3: finetune baseline auf 50/50 Sommer+Frühjahr 20cm, RGBI+NDVI.
+# Ausgelöst durch Schritt 2: das Frühjahr-20cm-Modell versagt auf 20cm-Sommer (0.008),
+# die Baseline umgekehrt bei 20cm-Frühjahr (0.044) → Saison ist ein eigener Domänen-Sprung.
+# Frage: kann EIN 20cm-Modell beide Jahreszeiten halten? Jedes Trainingsgebiet ist zweimal
+# gelistet — als _native20_spring (aus DOP20-spring/) und _native20_summer (aus DOP20/) →
+# 50/50-Mischung. GT ist je Saison dieselbe Shapefile (Kronen-Positionen saison-unabhängig).
+# Erwartetes Ergebnis (SCHEDULE.txt): Frühjahr nicht so stark wie Schritt 2, aber Sommer bleibt gut.
+#
+# Vor dem Training als nda (DOP20/ und DOP20-spring/ müssen die Trainingsgebiete enthalten):
+#   .venv/bin/python 3_Model/src/prepare_data.py --config <this> --train-spring20 --train-summer20
+#   .venv/bin/python 3_Model/src/prepare_data.py --config <this> --eval-resolutions   (für die Test-Eval)
+# LR fix 1e-4 (CV zeigte: LR-Tuning hebt die Test-Metrik hier nicht).
+paths:
+  base: /home/leafline/leafline/Data/Kiel/TrainingAreas
+  pretrained: ~/pretrained_models/freudenberg2022.pt
+  output: /home/leafline/leafline/3_Model/runs/step3_mix20
+
+data:
+  patch_size: 256
+
+  # 50/50: jede Fläche als Frühjahr UND Sommer.
+  train_areas:
+    - area: HoernSued_native20_spring
+      gt_file: train/HoernSued_GroundTruth.shp
+    - area: HoernSued_native20_summer
+      gt_file: train/HoernSued_GroundTruth.shp
+    - area: SchuetzenparkMitte_native20_spring
+      gt_file: train/SchuetzenparkMitte_GroundTruth.shp
+    - area: SchuetzenparkMitte_native20_summer
+      gt_file: train/SchuetzenparkMitte_GroundTruth.shp
+    - area: SchuetzenparkOst_native20_spring
+      gt_file: train/SchuetzenparkOst_GroundTruth.shp
+    - area: SchuetzenparkOst_native20_summer
+      gt_file: train/SchuetzenparkOst_GroundTruth.shp
+    - area: SchuetzenparkWest_native20_spring
+      gt_file: train/SchuetzenparkWest_GroundTruth.shp
+    - area: SchuetzenparkWest_native20_summer
+      gt_file: train/SchuetzenparkWest_GroundTruth.shp
+
+  valid_areas:
+    - area: Schule_native20_spring
+      gt_file: valid/Schule_GroundTruth.shp
+    - area: Schule_native20_summer
+      gt_file: valid/Schule_GroundTruth.shp
+    - area: Schwentine_native20_spring
+      gt_file: valid/Schwentine_GroundTruth.shp
+    - area: Schwentine_native20_summer
+      gt_file: valid/Schwentine_GroundTruth.shp
+    - area: Veloroute_native20_spring
+      gt_file: valid/Veloroute_GroundTruth.shp
+    - area: Veloroute_native20_summer
+      gt_file: valid/Veloroute_GroundTruth.shp
+
+  test_areas:
+    - area: BotGarten
+      gt_file: test/BotGarten_GroundTruth.shp
+    - area: HoernNord
+      gt_file: test/HoernNord_GroundTruth.shp
+
+  augment:
+    hflip: true
+    vflip: true
+    brightness: true
+    contrast: true
+    nir_scale: false
+    ndvi_scale: false
+    spectral_noise: false
+
+model:
+  in_channels: 5   # R G B I NDVI — kein nDOM (Höhe erst später)
+  lr: 1.0e-4
+
+training:
+  batch_size: 8
+  num_workers: 4
+  max_epochs: 50
+  patience: 10
+  oversample_small: false
+
+# 20cm-PP wie step2 (sigma=3, min_dist=10). Für den finalen Zahlenstand ggf. mit
+# pp_sweep.py separat für dieses Modell gegentesten (beide Auflösungen 20cm/20cm-spring).
+postprocessing:
+  mask_exp: 2
+  outline_multiplier: 5
+  outline_exp: 1
+  dist_exp: 0.5
+  sigma: 3
+  binary_threshold: 0.10
+  min_dist: 10
+  label_threshold: 0.10
+  area_min: 3
+  simplify: 0.3
