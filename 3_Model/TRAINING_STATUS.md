@@ -80,14 +80,46 @@ Beim Vorbereiten fiel ein **Config-Tippfehler** auf: `gt_file: train/Shuetzenpar
 `process_area` übersprang die Shapefile), brach aber Schritt 2 (neue GTs). In allen
 sechs Configs korrigiert.
 
-Gesamtauswertung aller drei Modelle: `3_Model/results_all_steps.ipynb`.
+Gesamtauswertung aller Modelle: `3_Model/results_all_steps.ipynb`.
 
-### Nächste Schritte (aktualisiert)
-1. **Postprocessing pro Modell×Auflösung tunen**, dann die On-Domain-Zahlen final ziehen.
-2. **Schedule-Schritt 3** (50/50 Sommer+Frühjahr 20cm) — testet ein saison-übergreifendes
-   20cm-Modell; für Kiels Frühjahrs-Fokus evtl. nachrangig.
-3. **Schedule-Schritt 4/5 — Höhenkanal (nDOM)** zu step1/step2 hinzufügen; laut v1-Ablation
-   der größte verbleibende Hebel und der Endzweck des Schedules.
+### Nachtrag — Postprocessing getunt, Hyperparameter geprüft, Schritt 3 erledigt (27.07.)
+
+**Postprocessing (pp_sweep.py, pro Modell×Auflösung).** PP ist auflösungsabhängig:
+7.5cm braucht großes min_dist (viele Fragmente mergen), 20cm kleines (sonst
+Unter-Segmentierung). Ergebnis: step1 @7.5cm 0.120→**0.150** (min_dist=30/sigma=2),
+step2 @20cm-spring 0.098→**0.113** (min_dist=10/sigma=3). Wichtig: der Gewinn kommt aus
+der **Precision**; der **Recall bleibt über den ganzen Sweep flach** (~0.12) — die
+Modell-Decke, nicht durch PP behebbar.
+
+**Hyperparameter (CV, 3 Folds über LR-Raster).** step1 will LR 5e-5, step2 will 2e-4
+(die feste 1e-4 war für beide suboptimal, in entgegengesetzte Richtung). Aber: die
+finalen best-LR-Modelle bringen **auf dem Test nichts** — step1 0.150→0.152 (flach),
+step2 0.113→**0.101 schlechter**, obwohl step2s val_F1 von 0.696 auf 0.802 stieg.
+Bestätigt: LR ist nicht der Hebel, der Recall-Flaschenhals dominiert. → feste 1e-4 behalten.
+
+**Schedule-Schritt 3 — 50/50 Sommer+Frühjahr 20cm (`step3_mix20`).** Bestes Modell auf
+**beiden** 20cm-Spalten zugleich (PP 10/3):
+
+| 20cm-Spalte | Baseline | step2 (nur Frühjahr) | **step3 (50/50)** |
+|---|---|---|---|
+| 20cm (Sommer) | 0.340 | 0.008 | **0.317** |
+| 20cm-spring | 0.044 | 0.113 | **0.144** |
+
+Das 50/50-Modell holt den Sommer fast auf Baseline-Niveau zurück **und** verbessert
+sogar das Frühjahr gegenüber step2 (Recall steigt bei beiden; höchstes val_F1 aller
+Läufe, 0.809). → **Saisons sind gemeinsam trainierbar, Schedule-Schritt 4 (separates
+Sommer-Modell) entfällt.**
+
+**Gelernte Struktur:** getrennte Modelle je **Auflösung** (7.5 vs. 20), aber **ein**
+Modell je Auflösung über beide **Saisons**. Beste Modelle: step1 @7.5cm (0.150),
+step3 @20cm (Frühjahr 0.144 / Sommer 0.317).
+
+### Schedule-Stand & nächste Schritte
+- Schritt 1 ✅ · 2 ✅ · 3 ✅ · 4 ⛔ (nicht nötig) — der Auflösungs-/Saison-Zweig ist **durch**.
+- **Offen: Schritt 4b/5 — Höhenkanal (nDOM).** Config `finetune_step1_ndom_spring75.yaml`
+  liegt bereit (step1 mit in_channels=6, sonst identisch → isolierter nDOM-Effekt bei 7.5cm).
+- Neue Configs/Tools seit 27.07.: `finetune_step{1,2}_*_cvlr.yaml`, `finetune_step3_mix20.yaml`,
+  `finetune_step1_ndom_spring75.yaml`, `pp_sweep.py`, `prepare_data.py --train-spring20/--train-summer20`.
 
 ### Infrastruktur-/Code-Änderungen (seit 16.07., committet)
 - `dataset.py`: Augmentierung pro Komponente per Config schaltbar
