@@ -1,0 +1,73 @@
+# Schritt 2 — finale Variante mit CV-bester Lernrate (isolierter Hyperparameter-Effekt).
+# Identisch zu finetune_step2_spring20.yaml (100% Frühjahr 20cm, RGBI+NDVI, minimale
+# Augmentierung, getuntes PP 10/3), NUR die LR ist anders: 2e-4 statt 1e-4.
+# CV (runs/step2_spring20/cv_results.csv, 3 Folds): 2e-4 = mean val_F1 0.749, über
+# 1e-4 (0.719) und 5e-5 (0.707). Eigenes Output-Verzeichnis, damit step2_spring20 als
+# Fixe-LR-Referenz erhalten bleibt → direkter LR-Vergleich.
+#
+# Vor dem Training müssen die _native20_spring-Stacks vorliegen (prepare_data --train-spring20,
+# bereits gebaut für finetune_step2_spring20.yaml — dieselben Dateien).
+paths:
+  base: /home/leafline/leafline/Data/Kiel/TrainingAreas
+  pretrained: ~/pretrained_models/freudenberg2022.pt
+  output: /home/leafline/leafline/3_Model/runs/step2_spring20_cvlr
+
+data:
+  patch_size: 256
+
+  train_areas:
+    - area: HoernSued_native20_spring
+      gt_file: train/HoernSued_GroundTruth.shp
+    - area: SchuetzenparkMitte_native20_spring
+      gt_file: train/SchuetzenparkMitte_GroundTruth.shp
+    - area: SchuetzenparkOst_native20_spring
+      gt_file: train/SchuetzenparkOst_GroundTruth.shp
+    - area: SchuetzenparkWest_native20_spring
+      gt_file: train/SchuetzenparkWest_GroundTruth.shp
+
+  valid_areas:
+    - area: Schule_native20_spring
+      gt_file: valid/Schule_GroundTruth.shp
+    - area: Schwentine_native20_spring
+      gt_file: valid/Schwentine_GroundTruth.shp
+    - area: Veloroute_native20_spring
+      gt_file: valid/Veloroute_GroundTruth.shp
+
+  test_areas:
+    - area: BotGarten
+      gt_file: test/BotGarten_GroundTruth.shp
+    - area: HoernNord
+      gt_file: test/HoernNord_GroundTruth.shp
+
+  augment:
+    hflip: true
+    vflip: true
+    brightness: true
+    contrast: true
+    nir_scale: false
+    ndvi_scale: false
+    spectral_noise: false
+
+model:
+  in_channels: 5
+  lr: 2.0e-4   # CV-beste LR (step2); Fixe-LR-Referenz nutzte 1e-4
+
+training:
+  batch_size: 8
+  num_workers: 4
+  max_epochs: 50
+  patience: 10
+  oversample_small: false
+
+# 20cm-spring-getuntes PP (wie finetune_step2_spring20.yaml)
+postprocessing:
+  mask_exp: 2
+  outline_multiplier: 5
+  outline_exp: 1
+  dist_exp: 0.5
+  sigma: 3
+  binary_threshold: 0.10
+  min_dist: 10
+  label_threshold: 0.10
+  area_min: 3
+  simplify: 0.3
