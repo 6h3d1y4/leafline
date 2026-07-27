@@ -27,11 +27,11 @@ data:
     - area: HoernSued_native20_spring
       gt_file: train/HoernSued_GroundTruth.shp
     - area: SchuetzenparkMitte_native20_spring
-      gt_file: train/ShuetzenparkMitte_GroundTruth.shp
+      gt_file: train/SchuetzenparkMitte_GroundTruth.shp
     - area: SchuetzenparkOst_native20_spring
-      gt_file: train/ShuetzenparkOst_GroundTruth.shp
+      gt_file: train/SchuetzenparkOst_GroundTruth.shp
     - area: SchuetzenparkWest_native20_spring
-      gt_file: train/ShuetzenparkWest_GroundTruth.shp
+      gt_file: train/SchuetzenparkWest_GroundTruth.shp
 
   valid_areas:
     - area: Schule_native20_spring

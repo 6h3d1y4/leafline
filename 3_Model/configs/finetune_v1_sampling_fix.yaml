@@ -11,13 +11,13 @@ data:
       gt_file: train/HoernSued_GroundTruth.shp
     - area: HoernSued_summer
     - area: SchuetzenparkMitte
-      gt_file: train/ShuetzenparkMitte_GroundTruth.shp
+      gt_file: train/SchuetzenparkMitte_GroundTruth.shp
     - area: SchuetzenparkMitte_summer
     - area: SchuetzenparkOst
-      gt_file: train/ShuetzenparkOst_GroundTruth.shp
+      gt_file: train/SchuetzenparkOst_GroundTruth.shp
     - area: SchuetzenparkOst_summer
     - area: SchuetzenparkWest
-      gt_file: train/ShuetzenparkWest_GroundTruth.shp
+      gt_file: train/SchuetzenparkWest_GroundTruth.shp
     - area: SchuetzenparkWest_summer
 
   valid_areas:
