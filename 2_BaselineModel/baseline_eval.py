@@ -20,7 +20,7 @@ Muss als `nda` laufen (Datenzugriff auf Data/Kiel). Beispiel:
     .venv/bin/python 2_BaselineModel/baseline_eval.py
     # getuntes Postprocessing gegentesten (vgl. debug_predictions.ipynb):
     .venv/bin/python 2_BaselineModel/baseline_eval.py --min-dist 30 --sigma 2 \
-        --out 2_BaselineModel/baseline_eval_pp30.csv
+        --out 3_Model/runs/baseline_eval_pp30.csv
 """
 
 import argparse
@@ -129,7 +129,10 @@ def main():
     parser.add_argument("--base", default="/home/leafline/leafline/Data/Kiel/TrainingAreas",
                         help="Wurzel mit DOP7-5/ DOP20/ DOP20-spring/ test/")
     parser.add_argument("--model", default="~/pretrained_models/freudenberg2022.pt")
-    parser.add_argument("--out", default="2_BaselineModel/baseline_eval.csv")
+    # Default in 3_Model/runs/ — das Verzeichnis gehört nda und ist beschreibbar;
+    # 2_BaselineModel/ gehört leafline (als nda nicht schreibbar). Liegt damit auch
+    # direkt neben den Finetune-Eval-CSVs.
+    parser.add_argument("--out", default="3_Model/runs/baseline_eval.csv")
     parser.add_argument("--resolutions", nargs="+", default=list(RES_SPEC.keys()),
                         choices=list(RES_SPEC.keys()))
     parser.add_argument("--min-dist", type=int, default=None,
