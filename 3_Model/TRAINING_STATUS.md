@@ -3,6 +3,79 @@
 Dokumentiert für die Projektübergabe. Basis: Inspektion von `3_Model/runs/*`,
 `3_Model/configs/*`, `3_Model/src/*`, `SCHEDULE.txt` und Git-Historie.
 
+---
+
+## Update 27.07.2026 — Schedule-Schritt 1 trainiert & evaluiert
+
+Seit dem 16.07. wurde Schritt 1 des `SCHEDULE.txt` umgesetzt, die Infrastruktur
+dafür ausgebaut und erstmals ein sauberer Baseline-Vergleich erzeugt.
+
+### Was gelaufen ist
+- **Run `step1_spring75`** (`configs/finetune_step1_spring75.yaml`): 5 Kanäle
+  (RGBI+NDVI, **kein nDOM**), **100% Frühjahr 7.5cm** (keine `_summer`-Gebiete),
+  minimale Augmentierung (nur hflip/vflip/brightness/contrast). Bestes
+  **pixelweises** Val-F1 **0.788 @ Epoche 13** (Early Stop @23) — besser als v1
+  (0.706). Checkpoints in `runs/step1_spring75/checkpoints/`.
+- **Test-Eval** (`runs/step1_spring75/eval_test.csv`, kronenweise IoU 0.5, PP 10/1)
+  über alle drei Auflösungen erzeugt.
+- **Baseline-Zahlen erstmals berechnet.** Das Baseline-Notebook
+  (`2_BaselineModel/baseline_model.ipynb`) war nie bis zu den Ergebnis-Zellen
+  durchgelaufen — es gab **keine** gespeicherte Baseline-F1. Neues Skript
+  `2_BaselineModel/baseline_eval.py` reproduziert die `EVAL_PLAN`-Schleife
+  (freudenberg2022, in_channels=5) und schreibt `runs/baseline_eval.csv`
+  (PP 10/1) sowie `runs/baseline_eval_pp30.csv` (PP 30/2).
+
+### Kernergebnis (Mikro-F1, kronenweise, identisches PP 10/1)
+
+| Auflösung | Baseline | step1 | Δ |
+|---|---|---|---|
+| **7.5cm** (Frühjahr) | **0.000** | **0.120** | **+0.120** |
+| **20cm** (Sommer) | **0.339** | 0.052 | **−0.287** |
+| **20cm-spring** (Frühjahr) | 0.044 | 0.041 | ≈ 0 |
+
+1. **7.5cm: Finetune notwendig und erfolgreich.** Die Baseline erkennt bei
+   nativer 7.5cm-Auflösung praktisch nichts (0 Treffer, F1=0, OOD gegenüber ihrer
+   ~20cm-Trainingsauflösung); step1 hebt das auf 0.120.
+2. **20cm: step1 bricht ein**, die Baseline ist dort am stärksten. Der reine
+   7.5cm-Finetune spezialisiert und verliert 20cm → **Auslöser für Schritt 2**
+   (separate Modelle je Auflösung).
+3. **20cm-spring: beide scheitern** (~0) — niedrige Auflösung + Frühjahrs-Laub.
+4. **Postprocessing ist modell-/auflösungsabhängig**: 30/2 (aus
+   `debug_predictions.ipynb`, fürs Finetune-Modell bei 7.5cm getunt) ist für die
+   Baseline bei 20cm schlechter (0.263 vs. 0.339) und zerstört 7.5cm komplett.
+   step1 über-segmentiert bei 7.5cm noch (408 vs. 357 GT) → mit per-Auflösung
+   getuntem PP läge step1s 7.5cm-Wert höher.
+
+Vollständige, live aus den CSVs berechnete Auswertung inkl. Diagrammen:
+`3_Model/results_step1_vs_baseline.ipynb`.
+
+### Infrastruktur-/Code-Änderungen (seit 16.07., committet)
+- `dataset.py`: Augmentierung pro Komponente per Config schaltbar
+  (`data.augment`), robust für 5-/6-Kanal-Patches.
+- `train.py`: `oversample_small` kommt jetzt aus der Config (war hart `True`
+  verdrahtet — reproduzierte v1 nicht); optionale k-Fold-CV über LR-Raster via
+  `--cv-folds`/`--lr-grid`.
+- `evaluate.py`: Auflösungs-Matrix (`--resolutions`) statt einzelnem `--season`.
+- `prepare_data.py`: `--eval-resolutions` baut native 20cm-Eval-Stacks.
+- `run_training.sh`: Config als Argument, kein erzwungenes `--summer`.
+- Doku: `3_Model/README.md` (Betriebsanleitung Läufe/Eval),
+  `results_step1_vs_baseline.ipynb`.
+
+### Nächste Schritte
+1. **Schritt 2 vorbereiten** — `configs/finetune_step2_spring20.yaml` analog zu
+   step1, aber **100% Frühjahr 20cm** (RGBI+NDVI). Voraussetzung: 20cm-Trainings-
+   stacks für die Trainingsgebiete müssen vorliegen (prüfen/erzeugen).
+2. **Postprocessing pro Modell×Auflösung tunen** (min_dist/sigma), bevor finale
+   Zahlen gezogen werden — der aktuelle 7.5cm-Wert von step1 ist durch
+   Über-Segmentierung gedrückt.
+3. **20cm-spring** bleibt offen (beide ~0): eigener Fokus, evtl.
+   Kombi-Training (Schedule Schritt 3) oder gezielte Domänen-Augmentierung.
+4. **Optional/isoliert**: Schritt 1 mit stdout-Logging reproduzieren und mit den
+   neuen Augment-Schaltern die Beobachtung „minimale Aug → Val↑ aber Test↓ vs.
+   v1s aggressive Aug" gezielt gegentesten; `--cv-folds` für den LR-Effekt.
+
+---
+
 ## 1. Läuft aktuell ein Training?
 
 **Nein.** Es existiert kein laufender tmux-Server (`/tmp/tmux-1001` nicht vorhanden)
