@@ -24,6 +24,7 @@ Muss als `nda` laufen. Beispiel (bestes 7.5cm-Modell):
 """
 
 import argparse
+import csv
 import os
 import sys
 from pathlib import Path
@@ -73,6 +74,8 @@ def main():
                         default=[0.1, 0.2, 0.3, 0.4, 0.5])
     parser.add_argument("--partial-thresh", type=float, default=0.5,
                         help="Schwelle für die zero/partial/hit-Einteilung (Default 0.5)")
+    parser.add_argument("--out-dir", default=None,
+                        help="Ausgabeverzeichnis für die CSVs (Default: runs/<output> aus dem Config)")
     args = parser.parse_args()
 
     with open(args.config) as f:
@@ -139,16 +142,34 @@ def main():
 
     # ── 2. P/R/F1 über IoU-Schwellen ────────────────────────────────────────
     print(f"\n── Precision/Recall/F1 über IoU-Schwellen ──")
+    curve_rows = []
     for thr in args.iou_thresholds:
         tp = fp = fn = 0
         for _, preds, gts in tiles:
             a, b, c = match_polygons(preds, gts, thr)
             tp += a; fp += b; fn += c
         p, r, f1 = compute_metrics(tp, fp, fn)
+        curve_rows.append({"iou_threshold": thr, "tp": tp, "fp": fp, "fn": fn,
+                           "precision": round(p, 4), "recall": round(r, 4), "f1": round(f1, 4)})
         print(f"  IoU>={thr:.1f}   P={p:.3f}  R={r:.3f}  F1={f1:.3f}")
 
     print("\nDeutung: viele 'zero' → Erkennungsproblem (Loss/Sampling); viel 'partial' bzw. "
           "stark steigender Recall bei lockerer IoU → Form/Größe (PP / dist-Loss / Metrik).")
+
+    # ── CSVs schreiben (für recall_iou_analysis.ipynb) ──────────────────────
+    out_dir = Path(args.out_dir) if args.out_dir else Path(cfg["paths"]["output"])
+    out_dir.mkdir(parents=True, exist_ok=True)
+    curve_path = out_dir / f"iou_curve_{args.resolution}.csv"
+    with open(curve_path, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(curve_rows[0].keys()))
+        w.writeheader(); w.writerows(curve_rows)
+    comp_path = out_dir / f"iou_composition_{args.resolution}.csv"
+    with open(comp_path, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["category", "count", "pct"])
+        w.writeheader()
+        for cat, cnt in [("zero", zero), ("partial", partial), ("hit", hit)]:
+            w.writerow({"category": cat, "count": cnt, "pct": round(100 * cnt / n, 2)})
+    print(f"Saved: {curve_path}\n       {comp_path}")
 
 
 if __name__ == "__main__":
