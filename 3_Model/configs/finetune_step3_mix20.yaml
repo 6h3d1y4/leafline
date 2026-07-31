@@ -2,7 +2,7 @@
 # Ausgelöst durch Schritt 2: das Frühjahr-20cm-Modell versagt auf 20cm-Sommer (0.008),
 # die Baseline umgekehrt bei 20cm-Frühjahr (0.044) → Saison ist ein eigener Domänen-Sprung.
 # Frage: kann EIN 20cm-Modell beide Jahreszeiten halten? Jedes Trainingsgebiet ist zweimal
-# gelistet — als _native20_spring (aus DOP20-spring/) und _native20_summer (aus DOP20/) →
+# gelistet - als _native20_spring (aus DOP20-spring/) und _native20_summer (aus DOP20/) →
 # 50/50-Mischung. GT ist je Saison dieselbe Shapefile (Kronen-Positionen saison-unabhängig).
 # Erwartetes Ergebnis (SCHEDULE.txt): Frühjahr nicht so stark wie Schritt 2, aber Sommer bleibt gut.
 #
@@ -67,7 +67,7 @@ data:
     spectral_noise: false
 
 model:
-  in_channels: 5   # R G B I NDVI — kein nDOM (Höhe erst später)
+  in_channels: 5   # R G B I NDVI - kein nDOM (Höhe erst später)
   lr: 1.0e-4
 
 training:

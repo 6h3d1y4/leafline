@@ -95,7 +95,7 @@ def load_pretrained_6ch(
             and model_val.shape[0] == jit_val.shape[0]
             and model_val.shape[2:] == jit_val.shape[2:]
         ):
-            # Input-channel mismatch on a conv layer — expand
+            # Input-channel mismatch on a conv layer - expand
             new_sd[key] = _expand_first_conv(jit_val, model_val.shape[1])
             expanded.append(f"  {key}: {list(jit_val.shape)} → {list(model_val.shape)}")
         else:
@@ -109,7 +109,7 @@ def load_pretrained_6ch(
     for e in expanded:
         print(e)
     if kept_random:
-        print(f"  Randomly initialized ({len(kept_random)} keys — expected for new channels)")
+        print(f"  Randomly initialized ({len(kept_random)} keys - expected for new channels)")
     if missing:
         print(f"  Missing keys: {missing}")
     if unexpected:

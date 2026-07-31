@@ -35,7 +35,7 @@ data:
       gt_file: test/HoernNord_GroundTruth.shp
 
 model:
-  # 6 channels: R G B I NDVI nDOM — same as finetune_v1.yaml (the untouched original
+  # 6 channels: R G B I NDVI nDOM - same as finetune_v1.yaml (the untouched original
   # baseline), but trained fresh from the pretrained checkpoint into a separate output
   # dir (runs/v1_sampling_fix) with KielPatchDataset(oversample_small=True) active,
   # so runs/v1 stays intact as the pre-fix reference for comparison.

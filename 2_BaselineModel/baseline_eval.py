@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Baseline-Evaluation als eigenständiges Skript — reproduziert exakt die EVAL_PLAN-
+Baseline-Evaluation als eigenständiges Skript - reproduziert exakt die EVAL_PLAN-
 Schleife aus baseline_model.ipynb (un-finetuntes freudenberg2022-Modell), damit die
 Baseline-Zahlen gespeichert und direkt neben den Finetuning-Runs abgelegt werden können.
 
@@ -12,7 +12,7 @@ Unterschied zu evaluate.py (bewusst, weil es die *Baseline* ist):
   - Modell = DeepTreesModel(in_channels=5, apply_sigmoid=True), Gewichte aus
     freudenberg2022.pt via torch.jit.load → tcd_backbone (KEIN Finetune-Checkpoint),
   - Input wird direkt aus den DOP-RGBI-Kacheln + berechnetem NDVI gebaut (nicht aus
-    stacked_6ch), nativ ohne Resampling — exakt wie im Baseline-Notebook,
+    stacked_6ch), nativ ohne Resampling - exakt wie im Baseline-Notebook,
   - Tiling je Auflösung wie im Notebook (7.5cm: 682/341, 20cm*: 256/128).
 
 Muss als `nda` laufen (Datenzugriff auf Data/Kiel). Beispiel:
@@ -100,7 +100,7 @@ def compute_metrics(tp: int, fp: int, fn: int):
 
 
 def load_baseline_model(model_path: Path, device):
-    """DeepTreesModel(in_channels=5) mit freudenberg2022-Gewichten — wie baseline_model.ipynb."""
+    """DeepTreesModel(in_channels=5) mit freudenberg2022-Gewichten - wie baseline_model.ipynb."""
     model = DeepTreesModel(
         in_channels=5, architecture="Unet", backbone="resnet18",
         apply_sigmoid=True, num_backbones=1,
@@ -129,7 +129,7 @@ def main():
     parser.add_argument("--base", default="/home/leafline/leafline/Data/Kiel/TrainingAreas",
                         help="Wurzel mit DOP7-5/ DOP20/ DOP20-spring/ test/")
     parser.add_argument("--model", default="~/pretrained_models/freudenberg2022.pt")
-    # Default in 3_Model/runs/ — das Verzeichnis gehört nda und ist beschreibbar;
+    # Default in 3_Model/runs/ - das Verzeichnis gehört nda und ist beschreibbar;
     # 2_BaselineModel/ gehört leafline (als nda nicht schreibbar). Liegt damit auch
     # direkt neben den Finetune-Eval-CSVs.
     parser.add_argument("--out", default="3_Model/runs/baseline_eval.csv")
@@ -193,7 +193,7 @@ def main():
         print(f"  {area:20s} [{res:11s}] pred={len(pred_polys):4d}  gt={len(gt_polys):4d}  F1={f1:.3f}")
 
     if not results:
-        print("Keine Ergebnisse — Pfade/Auflösungen prüfen.")
+        print("Keine Ergebnisse - Pfade/Auflösungen prüfen.")
         return
 
     out_path = Path(args.out)

@@ -1,4 +1,4 @@
-# Model — Fine-Tuning & Evaluation
+# Model - Fine-Tuning & Evaluation
 
 Betriebsanleitung: **wie Trainingsläufe und Auswertungen gemacht werden.** Für die
 inhaltliche Modell-/Ergebnisdarstellung siehe
@@ -10,7 +10,7 @@ inhaltliche Modell-/Ergebnisdarstellung siehe
 ## 0. Wichtigste Voraussetzung: als `nda` ausführen
 
 Die Trainingsdaten unter `Data/Kiel/` sind per ACL **nur für den Nutzer `nda`**
-lesbar — `leafline`/`joshuaj` haben keinen Zugriff. Alles, was Daten liest
+lesbar - `leafline`/`joshuaj` haben keinen Zugriff. Alles, was Daten liest
 (`prepare_data.py`, `train.py`, `evaluate.py`, die Notebooks), muss deshalb in
 einer **`nda`-Sitzung** laufen:
 
@@ -27,7 +27,7 @@ Details zu Konten, SSH/Tailscale und warum das so ist:
 ## 1. Ein Trainingslauf in 2 Schritten
 
 Jeder Lauf ist: **Daten aufbereiten → trainieren.** Beides wird von einem
-Config-File (`configs/*.yaml`) gesteuert — welcher Lauf gemacht wird, hängt
+Config-File (`configs/*.yaml`) gesteuert - welcher Lauf gemacht wird, hängt
 allein am gewählten Config.
 
 ### Bequemster Weg (tmux-Wrapper, überlebt SSH-Disconnect)
@@ -68,7 +68,7 @@ tmux new-session -d -s kiel-step1 \
 ```
 
 **Automatisches Resume:** `train.py` setzt automatisch aus
-`runs/<name>/checkpoints/last.pt` fort, wenn vorhanden — ein Neustart beginnt
+`runs/<name>/checkpoints/last.pt` fort, wenn vorhanden - ein Neustart beginnt
 also nicht bei null. Für einen echten Neustart das `runs/<name>/`-Verzeichnis
 (oder nur `checkpoints/last.pt`) vorher löschen.
 
@@ -76,7 +76,7 @@ also nicht bei null. Für einen echten Neustart das `runs/<name>/`-Verzeichnis
 
 ## 2. Was ein Config steuert (`configs/*.yaml`)
 
-Ein Lauf wird vollständig über den Config definiert — so lässt sich **je ein
+Ein Lauf wird vollständig über den Config definiert - so lässt sich **je ein
 Faktor isoliert** verändern (Ziel des `SCHEDULE.txt`-Vorgehens).
 
 ```yaml
@@ -96,7 +96,7 @@ data:
     brightness: true        # RGB-Helligkeit
     contrast: true          # RGB-Kontrast
     nir_scale: false        # NIR-Skalierung        ) spektrale Sommer→Frühjahr-
-    ndvi_scale: false       # NDVI-Herunterskalierung) Simulation — bei 100% Frühjahr AUS
+    ndvi_scale: false       # NDVI-Herunterskalierung) Simulation - bei 100% Frühjahr AUS
     spectral_noise: false   # Gauß-Rauschen ch0-4
 
 model:
@@ -113,7 +113,7 @@ postprocessing: {...}       # Watershed-/Schwellenparameter, nur für die Eval r
 ```
 
 Wichtig: `in_channels: 5` lässt den nDOM-Kanal weg (RGBI+NDVI), `6` nimmt ihn
-dazu — mehr braucht es für die Höhen-Ablation nicht. Die `augment`- und
+dazu - mehr braucht es für die Höhen-Ablation nicht. Die `augment`- und
 `oversample_small`-Schalter existieren, damit man den Effekt jeder einzelnen
 Maßnahme sauber messen kann.
 
@@ -134,7 +134,7 @@ Maßnahme sauber messen kann.
 
 Statt eines festen Splits kann `train.py` k-Fold-CV über ein LR-Raster fahren
 (Schedule: „cross-fold to get best hyperparam setup"). Es misst **nur den
-Hyperparameter-Effekt** — es werden keine Modell-Checkpoints gespeichert:
+Hyperparameter-Effekt** - es werden keine Modell-Checkpoints gespeichert:
 
 ```bash
 .venv/bin/python 3_Model/src/train.py \
@@ -178,7 +178,7 @@ Nach dem Training auf den Testgebieten evaluieren. `evaluate.py` misst
 - `--eval-resolutions` braucht `Data/Kiel/TrainingAreas/DOP20-spring/`.
 - Hinweis Postprocessing: `debug_predictions.ipynb` fand `min_dist=30, sigma=2`
   klar besser gegen Über-Segmentierung als der Config-Default (`10/1`). Das ist
-  eine reine Eval-Frage (kein Training) — beim Auswerten gegentesten.
+  eine reine Eval-Frage (kein Training) - beim Auswerten gegentesten.
 
 Der Gesamtvergleich (Baseline vs. Finetuning je Auflösung) läuft in
 [`results_notebook.ipynb`](results_notebook.ipynb).
@@ -197,7 +197,7 @@ runs/<name>/
   eval_test.csv         # nach evaluate.py
 ```
 
-Checkpoints sind ~183 MB je Datei und über `.gitignore` vom Repo ausgeschlossen —
+Checkpoints sind ~183 MB je Datei und über `.gitignore` vom Repo ausgeschlossen -
 nicht committen, separat übergeben.
 
 ---

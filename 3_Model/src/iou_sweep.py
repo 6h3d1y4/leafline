@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Recall-Diagnose: wo geht der Recall verloren — Nicht-Erkennung oder Form/Größe?
+Recall-Diagnose: wo geht der Recall verloren - Nicht-Erkennung oder Form/Größe?
 
 Läuft die Inferenz EINMAL je Testkachel, wendet das (getunte) Config-Postprocessing an
-und wertet die predizierten Polygone gegen die GT aus — ohne Training, ohne neue Daten.
+und wertet die predizierten Polygone gegen die GT aus - ohne Training, ohne neue Daten.
 Zwei Auswertungen:
 
   1. Beste IoU PRO GT-Krone (schwellen-unabhängig): teilt jede GT-Krone ein in

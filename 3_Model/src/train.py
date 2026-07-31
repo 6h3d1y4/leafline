@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Fine-tune DeepTreesModel on stacked Kiel data (5- or 6-channel).
-Plain PyTorch training loop — no Lightning dependency.
+Plain PyTorch training loop - no Lightning dependency.
 
 Prerequisites:
     python 3_Model/src/prepare_data.py --config <config>
@@ -14,7 +14,7 @@ Usage:
     # Optional cross-validation over a learning-rate grid (Schedule Schritt 1
     # "cross-fold to get best hyperparam setup"). Pools train+valid areas, runs
     # k folds per LR, reports mean±std val_F1, writes runs/<out>/cv_results.csv.
-    # No checkpoints are saved in CV mode — it only measures hyperparameter effect.
+    # No checkpoints are saved in CV mode - it only measures hyperparameter effect.
     .venv/bin/python 3_Model/src/train.py --config 3_Model/configs/finetune_step1_spring75.yaml \
         --cv-folds 5 --lr-grid 5e-5,1e-4,2e-4
 
@@ -197,7 +197,7 @@ def train_evaluate(cfg, model, train_ds, train_dl, val_dl, device, *,
             patience_left = patience
             if ckpt_dir is not None:
                 torch.save(state | {"best_f1": best_f1}, ckpt_dir / "best.pt")
-                print(f"  ✓ New best F1={best_f1:.4f} — saved best.pt")
+                print(f"  ✓ New best F1={best_f1:.4f} - saved best.pt")
         else:
             patience_left -= 1
             print(f"  {tag}No improvement. Patience: {patience_left}/{patience}")
@@ -235,7 +235,7 @@ def run_single(cfg, stacked_dir, gt_dir, channel_indices, in_channels, device):
 
 
 def run_cv(cfg, stacked_dir, gt_dir, channel_indices, in_channels, device, n_folds, lr_grid):
-    """k-fold CV over a learning-rate grid. Measures hyperparameter effect only —
+    """k-fold CV over a learning-rate grid. Measures hyperparameter effect only -
     trains fresh from the pretrained checkpoint per fold, saves no model checkpoints."""
     out_dir = Path(cfg["paths"]["output"])
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -263,7 +263,7 @@ def run_cv(cfg, stacked_dir, gt_dir, channel_indices, in_channels, device, n_fol
             val_areas   = folds[fold_idx]
             train_areas = [a for j, f in enumerate(folds) if j != fold_idx for a in f]
             tag = f"[lr={lr:g} fold={fold_idx}] "
-            print(f"\n── CV {tag.strip()} — train {len(train_areas)} / val {len(val_areas)} areas ──")
+            print(f"\n── CV {tag.strip()} - train {len(train_areas)} / val {len(val_areas)} areas ──")
 
             train_ds, _, train_dl, val_dl = make_loaders(
                 cfg, train_areas, val_areas, stacked_dir, gt_dir, channel_indices)

@@ -3,7 +3,7 @@
 # separates Modell je Auflösung. Analog zu finetune_step1_spring75.yaml, aber die
 # Trainings-/Valid-Gebiete liegen als native 20cm-Frühjahr-Stacks vor (Suffix
 # _native20_spring, gebaut von prepare_data.py --train-spring20 aus DOP20-spring/).
-# Augmentierung minimal (nur hflip/vflip/brightness/contrast) — isoliert den reinen
+# Augmentierung minimal (nur hflip/vflip/brightness/contrast) - isoliert den reinen
 # Finetune-Effekt. Erwartetes Ergebnis (SCHEDULE.txt): 20cm-spring wird besser.
 #
 # Vor dem Training als nda:
@@ -59,7 +59,7 @@ data:
     spectral_noise: false
 
 model:
-  in_channels: 5   # R G B I NDVI — kein nDOM
+  in_channels: 5   # R G B I NDVI - kein nDOM
   lr: 1.0e-4
 
 training:
@@ -71,7 +71,7 @@ training:
 
 # Postprocessing für 20cm-spring getunt via pp_sweep.py (runs/step2_spring20/pp_sweep_20cm-spring.csv):
 # min_dist=10 (Default), sigma=3. Hebt 20cm-spring-F1 von 0.098 (10/1) auf 0.113. Anders als
-# bei 7.5cm hilft hier NUR die Glättung (sigma) — großes min_dist stürzt den Recall ab
+# bei 7.5cm hilft hier NUR die Glättung (sigma) - großes min_dist stürzt den Recall ab
 # (Unter-Segmentierung, da 20cm ~2.7× weniger Pixel/Krone). Werte gelten für 20cm.
 postprocessing:
   mask_exp: 2

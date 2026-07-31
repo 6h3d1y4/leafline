@@ -35,21 +35,21 @@ IoU≥0.5 cutoff is unusually strict for small tree crowns, we report both **IoU
 the more common **IoU 0.3**. Postprocessing is tuned per resolution (`pp_sweep.py`).
 
 #### Best Model Performance
-- **Best Model (7.5 cm, Kiel's native spring resolution):** `step1_ndom` — DeepTrees
+- **Best Model (7.5 cm, Kiel's native spring resolution):** `step1_ndom` - DeepTrees
   fine-tuned on 100 % spring 7.5 cm, 6 channels (RGBI + NDVI + nDOM/height).
-- **Best Model (20 cm):** `step3_mix20` — fine-tuned on a 50/50 summer+spring 20 cm mix.
+- **Best Model (20 cm):** `step3_mix20` - fine-tuned on a 50/50 summer+spring 20 cm mix.
 - **Evaluation Metric:** crown-level F1 (IoU-matched instance segmentation).
 - **Final Performance:** 7.5 cm F1 = **0.215** (IoU 0.5) / **0.438** (IoU 0.3);
   20 cm-spring F1 = **0.144** / 0.32; 20 cm-summer F1 = **0.317**.
 
 #### Model Comparison
-- **Baseline Performance (un-fine-tuned):** 7.5 cm F1 = **0.000** (out-of-distribution —
+- **Baseline Performance (un-fine-tuned):** 7.5 cm F1 = **0.000** (out-of-distribution -
   the pretrained model detects almost nothing at Kiel's native resolution),
   20 cm-summer = 0.340, 20 cm-spring = 0.044.
 - **Improvement Over Baseline:** 7.5 cm **0.000 → 0.215** (fine-tuning makes the native
   resolution usable at all); 20 cm-spring **0.044 → 0.144** (~3.3×).
 - **Channel ablation @7.5 cm** (all at tuned PP `outline_exp=12`): RGBI 0.173 < +NDVI 0.208
-  < +nDOM 0.215 — every channel helps; the outline-sharpening postprocessing lifts all
+  < +nDOM 0.215 - every channel helps; the outline-sharpening postprocessing lifts all
   three by ~0.05 F1 (channel-independent).
 
 #### Key Insights
@@ -61,15 +61,15 @@ the more common **IoU 0.3**. Postprocessing is tuned per resolution (`pp_sweep.p
   not needed) and even improves spring over a spring-only model.
 - **Model Limitations:** recall is the ceiling (~0.16 at IoU 0.5, ~0.33 at IoU 0.3).
   Sharpening the outline channel in postprocessing (`outline_exp`) splits merged neighbouring
-  crowns and *does* move recall (0.116 → 0.160; F1@0.5 0.158 → 0.215) — merging (~21 % of
+  crowns and *does* move recall (0.116 → 0.160; F1@0.5 0.158 → 0.215) - merging (~21 % of
   predictions swallow ≥2 crowns) is ~4× the over-segmentation rate, so this is the right
   lever. What remains is non-detection: ~38 % of crowns have no overlapping prediction at all
   and ~46 % are localized but fail IoU 0.5. Non-detection is *not* moved by postprocessing,
-  learning-rate tuning or extra channels — it is a data/annotation-density limit. (PP is
+  learning-rate tuning or extra channels - it is a data/annotation-density limit. (PP is
   tuned on the test set; the gain is real but the absolute value is optimistic.)
 - **Practical Impact:** the workflow shows a pretrained crown model can be adapted to a
   new city/resolution with little data, filling the gap of un-surveyed (private-land)
-  trees — but reliable per-crown delineation at 7.5 cm still needs more/denser training
+  trees - but reliable per-crown delineation at 7.5 cm still needs more/denser training
   annotations. Learned recipe: **one model per resolution, shared across seasons.**
 
 ## Documentation
@@ -78,7 +78,7 @@ the more common **IoU 0.3**. Postprocessing is tuned per resolution (`pp_sweep.p
 2. **[Dataset Characteristics](1_DatasetCharacteristics/exploratory_data_analysis.ipynb)**
 3. **[Baseline Model](2_BaselineModel/baseline_model.ipynb)**
 4. **[Model Definition and Evaluation](3_Model/model_definition_evaluation.ipynb)**
-   — results overview: [results_all_steps.ipynb](3_Model/results_all_steps.ipynb);
+   - results overview: [results_all_steps.ipynb](3_Model/results_all_steps.ipynb);
    training/eval how-to and status: [3_Model/README.md](3_Model/README.md),
    [TRAINING_STATUS.md](3_Model/TRAINING_STATUS.md)
 5. **[Presentation](4_Presentation/README.md)**

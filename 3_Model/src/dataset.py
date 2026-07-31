@@ -12,10 +12,10 @@ Channel indices (0-based):
   0 R  1 G  2 B  3 I(NIR)  4 NDVI  5 nDOM
 
 Spring-aware augmentation:
-  - NDVI (ch 4) is randomly scaled down (×0.2–1.0) to simulate bare/early foliage
-  - NIR  (ch 3) is randomly scaled (×0.7–1.1) — less seasonal swing than NDVI
+  - NDVI (ch 4) is randomly scaled down (×0.2-1.0) to simulate bare/early foliage
+  - NIR  (ch 3) is randomly scaled (×0.7-1.1) - less seasonal swing than NDVI
   - RGB  (ch 0-2) get brightness + contrast jitter to bridge summer→spring appearance
-  - nDOM (ch 5) is left unchanged — height is season-independent
+  - nDOM (ch 5) is left unchanged - height is season-independent
   - Spectral Gaussian noise on channels 0-4 (not nDOM)
 
 Small-crown oversampling (oversample_small=True):
@@ -41,8 +41,8 @@ def channel_indices_for(in_channels: int) -> list[int] | None:
     """
     Map model.in_channels (config) to the raster channel subset to feed the model.
 
-    6 = full stack (R G B I NDVI nDOM). 5 = drop nDOM (channel 5) — height ablation.
-    4 = R G B I only (drop NDVI + nDOM) — tests whether the derived NDVI channel adds
+    6 = full stack (R G B I NDVI nDOM). 5 = drop nDOM (channel 5) - height ablation.
+    4 = R G B I only (drop NDVI + nDOM) - tests whether the derived NDVI channel adds
     anything for spring imagery (NDVI is a summer-oriented greenness index).
     """
     if in_channels == 6:
@@ -56,7 +56,7 @@ def channel_indices_for(in_channels: int) -> list[int] | None:
 
 # Default augmentation (all components on) reproduces the original spring-aware
 # behaviour. Each component is individually toggleable via the config's `data.augment`
-# section so single factors can be isolated — e.g. Schedule Schritt 1 runs 100% spring
+# section so single factors can be isolated - e.g. Schedule Schritt 1 runs 100% spring
 # data and therefore switches the summer→spring spectral simulation (nir/ndvi/noise) OFF,
 # leaving only geometric flips + brightness/contrast.
 DEFAULT_AUGMENT = {
@@ -131,7 +131,7 @@ class KielPatchDataset(IterableDataset):
         """
         channel_indices: subset of the 6 raster channels to yield (see channel_indices_for).
         oversample_small: if True, a fraction of patches per area are centered on GT crowns
-            smaller than small_area_thresh_m2 instead of drawn uniformly at random — small/short
+            smaller than small_area_thresh_m2 instead of drawn uniformly at random - small/short
             crowns are systematically underrepresented in the raw training footprint otherwise.
         augment_config: per-component augmentation toggles (see DEFAULT_AUGMENT). Merged over
             the defaults, so passing None (or omitting keys) keeps the full spring-aware behaviour.

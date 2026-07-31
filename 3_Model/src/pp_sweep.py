@@ -6,12 +6,12 @@ Läuft die (teure) Netz-Inferenz EINMAL je Testkachel und cached mask/outline/di
 danach wird nur das (billige) Watershed-Postprocessing `extract_polygons` über ein
 `min_dist × sigma`-Raster variiert und je Kombination die kronenweise Mikro-F1 gemessen.
 Das sind die beiden Haupthebel gegen zu viele Marker pro Krone (siehe
-debug_predictions.ipynb, Abschnitte 8–9); die übrigen PP-Parameter bleiben auf den
+debug_predictions.ipynb, Abschnitte 8-9); die übrigen PP-Parameter bleiben auf den
 Config-Werten.
 
 Zweck: für ein Modell/eine Auflösung ein sinnvolles PP finden (v.a. 7.5cm, wo die
-Finetune-Modelle über-segmentieren), damit spätere Vergleiche — insbesondere der
-nDOM-Effekt — nicht durch schlechtes PP verzerrt werden.
+Finetune-Modelle über-segmentieren), damit spätere Vergleiche - insbesondere der
+nDOM-Effekt - nicht durch schlechtes PP verzerrt werden.
 
 Muss als `nda` laufen (Datenzugriff). Beispiel:
     cd ~/leafline
@@ -58,7 +58,7 @@ def main():
     parser.add_argument("--split", default="test", choices=["train", "valid", "test"])
     parser.add_argument("--resolution", default="7.5cm",
                         choices=["7.5cm", "20cm", "20cm-spring"],
-                        help="Eine Auflösung (Standard 7.5cm — dort über-segmentieren die Modelle).")
+                        help="Eine Auflösung (Standard 7.5cm - dort über-segmentieren die Modelle).")
     parser.add_argument("--min-dist", type=int, nargs="+", default=[10, 15, 20, 25, 30, 40],
                         help="Watershed-Marker-Mindestabstand: größer = weniger, größere Marker/Krone.")
     parser.add_argument("--sigma", type=float, nargs="+", default=[1, 2, 3],
@@ -125,7 +125,7 @@ def main():
         print(f"  Inferenz gecached: {area}  (GT-Kronen: {len(gt_polys)})")
 
     if not tiles:
-        print("Keine Kacheln — Pfade/Auflösung prüfen.")
+        print("Keine Kacheln - Pfade/Auflösung prüfen.")
         return
 
     om_grid = args.outline_mult if args.outline_mult is not None else [base_pp["outline_multiplier"]]
@@ -133,7 +133,7 @@ def main():
     print(f"\nSweep min_dist={args.min_dist} × sigma={args.sigma} × "
           f"outline_mult={om_grid} × outline_exp={oe_grid}  "
           f"(Baseline-PP: min_dist={base_pp['min_dist']}, sigma={base_pp['sigma']}, "
-          f"outline_multiplier={base_pp['outline_multiplier']}, outline_exp={base_pp['outline_exp']}) — "
+          f"outline_multiplier={base_pp['outline_multiplier']}, outline_exp={base_pp['outline_exp']}) - "
           f"GT gesamt: {total_gt}\n")
 
     # ── Sweep (nur Postprocessing, keine erneute Inferenz) ──────────────────

@@ -1,5 +1,5 @@
 # Schedule Schritt 1: finetune baseline auf 100% Frühjahr 7.5cm, RGBI+NDVI (kein nDOM).
-# Augmentierung bewusst minimal (hflip/vflip/brightness/contrast) — die spektrale
+# Augmentierung bewusst minimal (hflip/vflip/brightness/contrast) - die spektrale
 # Sommer→Frühjahr-Simulation (nir/ndvi/noise) ist AUS, weil hier bereits 100% Frühjahr:
 # so ist der reine Finetune-Effekt isoliert. Erwartetes Ergebnis (SCHEDULE.txt): 7.5cm-
 # Frühjahr und 20cm-Frühjahr werden besser. Danach evaluieren via
@@ -13,7 +13,7 @@ paths:
 data:
   patch_size: 256
 
-  # 100% Frühjahr 7.5cm — KEINE _summer-Varianten (im Unterschied zu finetune_v1*).
+  # 100% Frühjahr 7.5cm - KEINE _summer-Varianten (im Unterschied zu finetune_v1*).
   train_areas:
     - area: HoernSued
       gt_file: train/HoernSued_GroundTruth.shp
@@ -39,7 +39,7 @@ data:
       gt_file: test/HoernNord_GroundTruth.shp
 
   # Nur die im Schedule genannten Augmentierungen. Fehlt dieser Block, sind alle
-  # Komponenten an (siehe dataset.py::DEFAULT_AUGMENT) — hier explizit gepinnt.
+  # Komponenten an (siehe dataset.py::DEFAULT_AUGMENT) - hier explizit gepinnt.
   augment:
     hflip: true
     vflip: true
@@ -50,7 +50,7 @@ data:
     spectral_noise: false
 
 model:
-  in_channels: 5   # R G B I NDVI — kein nDOM (Höhe kommt laut Schedule erst später)
+  in_channels: 5   # R G B I NDVI - kein nDOM (Höhe kommt laut Schedule erst später)
   lr: 1.0e-4
 
 training:
@@ -62,7 +62,7 @@ training:
 
 # Postprocessing für 7.5cm getunt via pp_sweep.py (runs/step1_spring75/pp_sweep_7.5cm.csv):
 # min_dist=30, sigma=2 gegen Über-Segmentierung. Hebt die 7.5cm-F1 von 0.120 (Default 10/1)
-# auf ~0.150 — der Gewinn kommt aus der Precision (weniger Fragmente: pred 672→385 bei
+# auf ~0.150 - der Gewinn kommt aus der Precision (weniger Fragmente: pred 672→385 bei
 # GT=732); der Recall (~0.12) bleibt über den ganzen Sweep flach, ist also die Modell-Decke,
 # nicht durch PP behebbar. Werte gelten für 7.5cm; 20cm braucht ggf. eigenes Tuning.
 postprocessing:

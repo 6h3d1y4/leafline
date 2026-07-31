@@ -1,11 +1,11 @@
 # NDVI-Test: bringt der abgeleitete NDVI-Kanal bei reinen Frühjahrs-7.5cm-Bildern etwas?
 # EXAKT identisch zu finetune_step1_spring75.yaml (100% Frühjahr 7.5cm, minimale
-# Augmentierung, getuntes PP 30/2, LR 1e-4) — der EINZIGE Unterschied ist
+# Augmentierung, getuntes PP 30/2, LR 1e-4) - der EINZIGE Unterschied ist
 # in_channels: 4 statt 5, also RGBI OHNE NDVI. So misst der Vergleich step1 (5ch,
 # mit NDVI) vs. dieses Modell (4ch, ohne NDVI) rein den NDVI-Beitrag.
 #
 # Hypothese: NDVI = (NIR-R)/(NIR+R) ist ein abgeleiteter Greenness-Index, im Sommer
-# stark, im Frühjahr schwächer (weniger Blattgrün) — und das vortrainierte Netz lernte
+# stark, im Frühjahr schwächer (weniger Blattgrün) - und das vortrainierte Netz lernte
 # NDVI in einem Sommer-Kontext. Bei Frühjahrsbildern könnte NDVI überflüssig oder sogar
 # störend sein (das Netz hat R und NIR ohnehin und kann jede nützliche Kombination lernen).
 # Datenseitig nichts Neues nötig: dataset.py verwirft NDVI via channel_indices_for(4)=[0,1,2,3];
@@ -52,7 +52,7 @@ data:
     spectral_noise: false
 
 model:
-  in_channels: 4   # R G B I — OHNE NDVI (der EINZIGE Unterschied zu step1)
+  in_channels: 4   # R G B I - OHNE NDVI (der EINZIGE Unterschied zu step1)
   lr: 1.0e-4
 
 training:

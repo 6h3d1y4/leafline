@@ -103,7 +103,7 @@ def main():
     parser.add_argument("--split", default="test", choices=["train", "valid", "test"])
     parser.add_argument("--resolutions", nargs="+", default=["7.5cm", "20cm", "20cm-spring"],
                         choices=["7.5cm", "20cm", "20cm-spring"],
-                        help="Which baseline-comparable resolution categories to evaluate — "
+                        help="Which baseline-comparable resolution categories to evaluate - "
                              "defaults to all three so every checkpoint is tested on the full "
                              "matrix (7.5cm spring, 20cm summer, 20cm spring) to avoid bias.")
     parser.add_argument("--iou-threshold", type=float, default=0.5)
@@ -185,7 +185,7 @@ def main():
             print(f"  {area:20s} [{resolution:11s}] pred={len(pred_polys):4d}  gt={len(gt_polys):4d}  F1={f1:.3f}")
 
     if not results:
-        print("No results — check that stacked TIFs exist and split is correct")
+        print("No results - check that stacked TIFs exist and split is correct")
         return
 
     out_path = Path(cfg["paths"]["output"]) / f"eval_{args.split}.csv"

@@ -1,4 +1,4 @@
-# Schritt 1 — finale Variante mit CV-bester Lernrate (isolierter Hyperparameter-Effekt).
+# Schritt 1 - finale Variante mit CV-bester Lernrate (isolierter Hyperparameter-Effekt).
 # Identisch zu finetune_step1_spring75.yaml (100% Frühjahr 7.5cm, RGBI+NDVI, minimale
 # Augmentierung, getuntes PP 30/2), NUR die LR ist anders: 5e-5 statt 1e-4.
 # CV (runs/step1_spring75/cv_results.csv, 3 Folds): 5e-5 = mean val_F1 0.768 (±0.06),

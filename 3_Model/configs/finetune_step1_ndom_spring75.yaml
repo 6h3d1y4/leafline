@@ -1,13 +1,13 @@
 # nDOM-Test: isoliert, was der Höhenkanal bringt (Schedule Schritt 4/5, vorgezogen).
 # EXAKT identisch zu finetune_step1_spring75.yaml (100% Frühjahr 7.5cm, minimale
-# Augmentierung, getuntes PP 30/2, LR 1e-4) — der EINZIGE Unterschied ist
+# Augmentierung, getuntes PP 30/2, LR 1e-4) - der EINZIGE Unterschied ist
 # in_channels: 6 statt 5, also RGBI+NDVI + nDOM (Höhe). So misst der Vergleich
 # step1 (5ch) vs. dieses Modell (6ch) rein den nDOM-Beitrag.
 #
 # Daten: prepare_data baut die Stacks ohnehin 6-bandig (nDOM als Band 6), step1 ließ
-# den Kanal nur weg — es ist KEIN neues prepare nötig, die 7.5cm-Stacks liegen vor.
+# den Kanal nur weg - es ist KEIN neues prepare nötig, die 7.5cm-Stacks liegen vor.
 # Erwartung: falls nDOM hilft, sollte es am Recall ansetzen (Kronen erkennen, die ohne
-# Höhe untergehen) — genau die Decke, die PP/LR nicht bewegen konnten.
+# Höhe untergehen) - genau die Decke, die PP/LR nicht bewegen konnten.
 paths:
   base: /home/leafline/leafline/Data/Kiel/TrainingAreas
   pretrained: ~/pretrained_models/freudenberg2022.pt
@@ -50,7 +50,7 @@ data:
     spectral_noise: false
 
 model:
-  in_channels: 6   # R G B I NDVI nDOM — der EINZIGE Unterschied zu step1 (5)
+  in_channels: 6   # R G B I NDVI nDOM - der EINZIGE Unterschied zu step1 (5)
   lr: 1.0e-4       # wie step1 (fix; LR-Tuning brachte nachweislich nichts)
 
 training:

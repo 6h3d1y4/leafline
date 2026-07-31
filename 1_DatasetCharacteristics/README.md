@@ -23,7 +23,7 @@
 
 ### Feature Description
 - **Feature Group Images (red, green, blue, infrared):** RGBI aerial images split into separate channels. All values range from 0 to 255 and need to be normalized during preprocessing. Data Type: GeoTIFF.
-- **Feature Group Additional calculated images (chm, NDVI):** Additional channels derived from the RGBI images. CHM (Canopy Height Model) contains height above terrain — strongly right-skewed with a small amount negative (terrain below sea level), a large spike near zero (flat ground), and a tail up to ~45 (tall trees and buildings). NDVI (Normalized Difference Vegetation Index) is calculated from red and infrared channels on the fly during preprocessing and is centred near zero due to normalisation, with a right tail representing dense vegetation. Data Type: GeoTIFF.
+- **Feature Group Additional calculated images (chm, NDVI):** Additional channels derived from the RGBI images. CHM (Canopy Height Model) contains height above terrain - strongly right-skewed with a small amount negative (terrain below sea level), a large spike near zero (flat ground), and a tail up to ~45 (tall trees and buildings). NDVI (Normalized Difference Vegetation Index) is calculated from red and infrared channels on the fly during preprocessing and is centred near zero due to normalisation, with a right tail representing dense vegetation. Data Type: GeoTIFF.
 - **Feature Group Labels (tree labels):** Polygons showing individual tree crown areas. Manually annotated for the project from aerial images, measured tree locations, and google street view. These need to be converted to pixel masks during preprocessing. Data Type: shapefile.
 
 ## Exploratory Data Analysis

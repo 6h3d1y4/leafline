@@ -1,11 +1,11 @@
-# Trainingsstatus — Stand 16.07.2026
+# Trainingsstatus - Stand 16.07.2026
 
 Dokumentiert für die Projektübergabe. Basis: Inspektion von `3_Model/runs/*`,
 `3_Model/configs/*`, `3_Model/src/*`, `SCHEDULE.txt` und Git-Historie.
 
 ---
 
-## Update 27.07.2026 — Schedule-Schritt 1 trainiert & evaluiert
+## Update 27.07.2026 - Schedule-Schritt 1 trainiert & evaluiert
 
 Seit dem 16.07. wurde Schritt 1 des `SCHEDULE.txt` umgesetzt, die Infrastruktur
 dafür ausgebaut und erstmals ein sauberer Baseline-Vergleich erzeugt.
@@ -14,13 +14,13 @@ dafür ausgebaut und erstmals ein sauberer Baseline-Vergleich erzeugt.
 - **Run `step1_spring75`** (`configs/finetune_step1_spring75.yaml`): 5 Kanäle
   (RGBI+NDVI, **kein nDOM**), **100% Frühjahr 7.5cm** (keine `_summer`-Gebiete),
   minimale Augmentierung (nur hflip/vflip/brightness/contrast). Bestes
-  **pixelweises** Val-F1 **0.788 @ Epoche 13** (Early Stop @23) — besser als v1
+  **pixelweises** Val-F1 **0.788 @ Epoche 13** (Early Stop @23) - besser als v1
   (0.706). Checkpoints in `runs/step1_spring75/checkpoints/`.
 - **Test-Eval** (`runs/step1_spring75/eval_test.csv`, kronenweise IoU 0.5, PP 10/1)
   über alle drei Auflösungen erzeugt.
 - **Baseline-Zahlen erstmals berechnet.** Das Baseline-Notebook
   (`2_BaselineModel/baseline_model.ipynb`) war nie bis zu den Ergebnis-Zellen
-  durchgelaufen — es gab **keine** gespeicherte Baseline-F1. Neues Skript
+  durchgelaufen - es gab **keine** gespeicherte Baseline-F1. Neues Skript
   `2_BaselineModel/baseline_eval.py` reproduziert die `EVAL_PLAN`-Schleife
   (freudenberg2022, in_channels=5) und schreibt `runs/baseline_eval.csv`
   (PP 10/1) sowie `runs/baseline_eval_pp30.csv` (PP 30/2).
@@ -39,7 +39,7 @@ dafür ausgebaut und erstmals ein sauberer Baseline-Vergleich erzeugt.
 2. **20cm: step1 bricht ein**, die Baseline ist dort am stärksten. Der reine
    7.5cm-Finetune spezialisiert und verliert 20cm → **Auslöser für Schritt 2**
    (separate Modelle je Auflösung).
-3. **20cm-spring: beide scheitern** (~0) — niedrige Auflösung + Frühjahrs-Laub.
+3. **20cm-spring: beide scheitern** (~0) - niedrige Auflösung + Frühjahrs-Laub.
 4. **Postprocessing ist modell-/auflösungsabhängig**: 30/2 (aus
    `debug_predictions.ipynb`, fürs Finetune-Modell bei 7.5cm getunt) ist für die
    Baseline bei 20cm schlechter (0.263 vs. 0.339) und zerstört 7.5cm komplett.
@@ -49,7 +49,7 @@ dafür ausgebaut und erstmals ein sauberer Baseline-Vergleich erzeugt.
 Vollständige, live aus den CSVs berechnete Auswertung inkl. Diagrammen:
 `3_Model/results_step1_vs_baseline.ipynb`.
 
-### Nachtrag — Schedule-Schritt 2 trainiert & evaluiert (27.07.)
+### Nachtrag - Schedule-Schritt 2 trainiert & evaluiert (27.07.)
 
 **Run `step2_spring20`** (`configs/finetune_step2_spring20.yaml`): 5 Kanäle,
 **100% Frühjahr 20cm** (native `_native20_spring`-Stacks aus `DOP20-spring/`, gebaut
@@ -65,7 +65,7 @@ Gesamtmatrix (kronenweise Mikro-F1, einheitliches PP 10/1):
 | **20cm-spring** (Frühjahr) | 0.044 | 0.041 | **0.098** |
 
 - **Schritt-2-Ziel erreicht:** step2 hebt 20cm-spring auf **0.098** (> 2× Baseline
-  0.044 / step1 0.041) — das im Schedule erwartete „20cm spring gets better".
+  0.044 / step1 0.041) - das im Schedule erwartete „20cm spring gets better".
 - **Diagonale:** jedes Modell ist nur auf seiner Trainingsdomäne stark (step1@7.5cm,
   step2@20cm-spring, baseline@20cm-Sommer).
 - **Jahreszeit als eigener Faktor:** bei gleicher 20cm-Auflösung bricht step2 (Frühjahr)
@@ -82,22 +82,22 @@ sechs Configs korrigiert.
 
 Gesamtauswertung aller Modelle: `3_Model/results_all_steps.ipynb`.
 
-### Nachtrag — Postprocessing getunt, Hyperparameter geprüft, Schritt 3 erledigt (27.07.)
+### Nachtrag - Postprocessing getunt, Hyperparameter geprüft, Schritt 3 erledigt (27.07.)
 
 **Postprocessing (pp_sweep.py, pro Modell×Auflösung).** PP ist auflösungsabhängig:
 7.5cm braucht großes min_dist (viele Fragmente mergen), 20cm kleines (sonst
 Unter-Segmentierung). Ergebnis: step1 @7.5cm 0.120→**0.150** (min_dist=30/sigma=2),
 step2 @20cm-spring 0.098→**0.113** (min_dist=10/sigma=3). Wichtig: der Gewinn kommt aus
-der **Precision**; der **Recall bleibt über den ganzen Sweep flach** (~0.12) — die
+der **Precision**; der **Recall bleibt über den ganzen Sweep flach** (~0.12) - die
 Modell-Decke, nicht durch PP behebbar.
 
 **Hyperparameter (CV, 3 Folds über LR-Raster).** step1 will LR 5e-5, step2 will 2e-4
 (die feste 1e-4 war für beide suboptimal, in entgegengesetzte Richtung). Aber: die
-finalen best-LR-Modelle bringen **auf dem Test nichts** — step1 0.150→0.152 (flach),
+finalen best-LR-Modelle bringen **auf dem Test nichts** - step1 0.150→0.152 (flach),
 step2 0.113→**0.101 schlechter**, obwohl step2s val_F1 von 0.696 auf 0.802 stieg.
 Bestätigt: LR ist nicht der Hebel, der Recall-Flaschenhals dominiert. → feste 1e-4 behalten.
 
-**Schedule-Schritt 3 — 50/50 Sommer+Frühjahr 20cm (`step3_mix20`).** Bestes Modell auf
+**Schedule-Schritt 3 - 50/50 Sommer+Frühjahr 20cm (`step3_mix20`).** Bestes Modell auf
 **beiden** 20cm-Spalten zugleich (PP 10/3):
 
 | 20cm-Spalte | Baseline | step2 (nur Frühjahr) | **step3 (50/50)** |
@@ -114,31 +114,31 @@ Sommer-Modell) entfällt.**
 Modell je Auflösung über beide **Saisons**. Beste Modelle: step1_ndom @7.5cm
 (**0.215** mit outline_exp=12, s. Nachtrag 31.07.), step3 @20cm (Frühjahr 0.144 / Sommer 0.317).
 
-### Nachtrag — Kanal-Ablation (RGBI / NDVI / nDOM), Schedule abgeschlossen (28.07.)
+### Nachtrag - Kanal-Ablation (RGBI / NDVI / nDOM), Schedule abgeschlossen (28.07.)
 
 Isolierter Kanal-Beitrag bei 7.5cm Frühjahr (je nur ein Kanal geändert, sonst identisch
 zu step1, alle mit getuntem PP 30/2):
 
 | Kanäle | Modell | F1 | Precision | Recall |
 |---|---|---|---|---|
-| 4 — RGBI | step1_rgbi | 0.123 | 0.166 | 0.098 |
-| 5 — +NDVI | step1 | 0.150 | 0.218 | 0.115 |
-| **6 — +nDOM** | step1_ndom | **0.158** | 0.249 | 0.116 |
+| 4 - RGBI | step1_rgbi | 0.123 | 0.166 | 0.098 |
+| 5 - +NDVI | step1 | 0.150 | 0.218 | 0.115 |
+| **6 - +nDOM** | step1_ndom | **0.158** | 0.249 | 0.116 |
 
-- **NDVI hilft auch im Frühjahr** (0.123→0.150) — Hypothese „im Frühjahr überflüssig"
+- **NDVI hilft auch im Frühjahr** (0.123→0.150) - Hypothese „im Frühjahr überflüssig"
   widerlegt. **nDOM** hilft nur wenig (0.150→0.158), **ausschließlich über die Precision**
   (Höhe trennt Bäume von grünem Boden; pred 385→342). in_channels=4 wird jetzt unterstützt
   (`model_utils._expand_first_conv` reduziert 5→4, behält RGBI-Gewichte).
-- **Zentrale Erkenntnis: der Recall (~0.115) ist die Decke und robust gegen alles** —
+- **Zentrale Erkenntnis: der Recall (~0.115) ist die Decke und robust gegen alles** -
   Postprocessing, Lernrate und Eingangskanäle bewegen ihn nicht (0.098→0.115→0.116). Der
   Engpass sind die verpassten kleinen/niedrigen Kronen (+ harte IoU≥0.5-Schwelle), also ein
   **Daten-/Aufgaben-Thema**, kein Modell-Setup-Thema.
 
-**Schedule-Stand: komplett** — Schritt 1 ✅ · 2 ✅ · 3 ✅ · 4 ⛔ (nicht nötig) · 4b/5 (nDOM) ✅.
+**Schedule-Stand: komplett** - Schritt 1 ✅ · 2 ✅ · 3 ✅ · 4 ⛔ (nicht nötig) · 4b/5 (nDOM) ✅.
 Gelernte Struktur: getrennte Modelle je **Auflösung**, ein Modell je Auflösung über beide
 **Saisons**; Kanäle RGBI<+NDVI<+nDOM (alle Gewinne aus der Precision).
 
-### Nachtrag — Outline-Postprocessing gegen Merging (31.07.)
+### Nachtrag - Outline-Postprocessing gegen Merging (31.07.)
 
 Die obige Aussage „Recall robust gegen alles" ist **teilweise widerlegt.** Segmentierungs-
 Diagnose (`seg_diagnostic.py`, step1_ndom @7.5cm): unter den Instanz-Fehlern ist **Merging**
@@ -147,22 +147,22 @@ richtige Hebel ist also der **Outline-Kanal**, nicht `min_dist`.
 
 `pp_sweep.py` um `outline_multiplier`/`outline_exp` erweitert (+ Ko-Metrik F1@0.3). Befund:
 `outline_multiplier` und kleineres `min_dist` bringen nichts (nur Fragmente/FP), aber
-**`outline_exp` monoton hilfreich** — es lässt nur *hochkonfidente* Kronengrenzen überleben
+**`outline_exp` monoton hilfreich** - es lässt nur *hochkonfidente* Kronengrenzen überleben
 und trennt so verschmolzene Nachbarn. Knie bei **`outline_exp=12`** (F1@0.3 gesättigt):
 
 | 7.5cm (oe=12) | F1@0.5 | F1@0.3 | Precision | Recall |
 |---|---|---|---|---|
-| 4 — RGBI | 0.173 | 0.431 | 0.222 | 0.142 |
-| 5 — +NDVI | 0.208 | 0.411 | 0.290 | 0.163 |
-| **6 — +nDOM** | **0.215** | **0.438** | 0.331 | **0.160** |
+| 4 - RGBI | 0.173 | 0.431 | 0.222 | 0.142 |
+| 5 - +NDVI | 0.208 | 0.411 | 0.290 | 0.163 |
+| **6 - +nDOM** | **0.215** | **0.438** | 0.331 | **0.160** |
 
-- Bestes Modell **0.158 → 0.215** (+37 %), und — anders als alle bisherigen Hebel — **Recall
+- Bestes Modell **0.158 → 0.215** (+37 %), und - anders als alle bisherigen Hebel - **Recall
   0.116 → 0.160**. Der Hebel wirkt kanal-unabhängig (~+0.05 F1 je Variante), Kanal-Reihenfolge
   bleibt RGBI<+NDVI<+nDOM. Zusammensetzung verschoben: hit 12→16 %, zero 40→38 %.
 - `outline_exp=12` in alle drei 7.5cm-Configs übernommen; eval_test/iou_curve neu erzeugt,
-  Notebook + README aktualisiert. **Vorbehalt:** PP auf dem Test-Set getunt — Gewinn real,
+  Notebook + README aktualisiert. **Vorbehalt:** PP auf dem Test-Set getunt - Gewinn real,
   Absolutwert leicht optimistisch.
-- **Rest-Decke** ist jetzt die **Nicht-Erkennung** (~38 % zero) — nicht per PP lösbar.
+- **Rest-Decke** ist jetzt die **Nicht-Erkennung** (~38 % zero) - nicht per PP lösbar.
 
 **Nächste sinnvolle Richtung** (außerhalb des Schedules): gegen die Nicht-Erkennung
 höheres **Outline-Loss-Gewicht** im Training, gezieltes Kleinkronen-Sampling / mehr Daten,
@@ -178,7 +178,7 @@ Neue Configs/Tools: `finetune_step{1,2}_*_cvlr.yaml`, `finetune_step3_mix20.yaml
 - `dataset.py`: Augmentierung pro Komponente per Config schaltbar
   (`data.augment`), robust für 5-/6-Kanal-Patches.
 - `train.py`: `oversample_small` kommt jetzt aus der Config (war hart `True`
-  verdrahtet — reproduzierte v1 nicht); optionale k-Fold-CV über LR-Raster via
+  verdrahtet - reproduzierte v1 nicht); optionale k-Fold-CV über LR-Raster via
   `--cv-folds`/`--lr-grid`.
 - `evaluate.py`: Auflösungs-Matrix (`--resolutions`) statt einzelnem `--season`.
 - `prepare_data.py`: `--eval-resolutions` baut native 20cm-Eval-Stacks.
@@ -187,11 +187,11 @@ Neue Configs/Tools: `finetune_step{1,2}_*_cvlr.yaml`, `finetune_step3_mix20.yaml
   `results_step1_vs_baseline.ipynb`.
 
 ### Nächste Schritte
-1. **Schritt 2 vorbereiten** — `configs/finetune_step2_spring20.yaml` analog zu
+1. **Schritt 2 vorbereiten** - `configs/finetune_step2_spring20.yaml` analog zu
    step1, aber **100% Frühjahr 20cm** (RGBI+NDVI). Voraussetzung: 20cm-Trainings-
    stacks für die Trainingsgebiete müssen vorliegen (prüfen/erzeugen).
 2. **Postprocessing pro Modell×Auflösung tunen** (min_dist/sigma), bevor finale
-   Zahlen gezogen werden — der aktuelle 7.5cm-Wert von step1 ist durch
+   Zahlen gezogen werden - der aktuelle 7.5cm-Wert von step1 ist durch
    Über-Segmentierung gedrückt.
 3. **20cm-spring** bleibt offen (beide ~0): eigener Fokus, evtl.
    Kombi-Training (Schedule Schritt 3) oder gezielte Domänen-Augmentierung.
@@ -206,27 +206,27 @@ Neue Configs/Tools: `finetune_step{1,2}_*_cvlr.yaml`, `finetune_step3_mix20.yaml
 **Nein.** Es existiert kein laufender tmux-Server (`/tmp/tmux-1001` nicht vorhanden)
 und kein laufender Python-Trainingsprozess (`ps aux` geprüft). Alle drei
 tmux-Sessions, die gestartet wurden, sind beendet bzw. die Maschine wurde
-zwischenzeitlich neu gestartet — die Ergebnisse liegen aber vollständig auf
+zwischenzeitlich neu gestartet - die Ergebnisse liegen aber vollständig auf
 Platte vor.
 
 ## 2. Abgeschlossene Trainingsläufe
 
 Drei Fine-Tuning-Läufe von `freudenberg2022.pt` (Deeptrees-Pretrained-Modell),
-alle am 01.–02.07.2026 gelaufen, alle mit Early Stopping (`patience=10`):
+alle am 01.-02.07.2026 gelaufen, alle mit Early Stopping (`patience=10`):
 
 | Run | Config-Unterschied zu `v1` | Epochen | Bestes val_F1 | @ Epoche | Val Precision/Recall |
 |---|---|---|---|---|---|
-| **v1** | Baseline-Finetune, 6 Kanäle (RGBI+NDVI+nDOM) | 0–46 (früh gestoppt) | **0.706** | 35 | P=0.736 / R=0.678 |
-| v1_sampling_fix | wie v1, zusätzlich `oversample_small=True` (Sampling-Fix für kleine Bäume) | 0–22 (früh gestoppt) | 0.684 | 11 | P=0.677 / R=0.692 |
-| v1_no_ndom | 5 Kanäle, **ohne** nDOM/Höhen-Kanal (Ablation) | 0–12 (früh gestoppt) | 0.657 | 2 | P=0.688 / R=0.629 |
+| **v1** | Baseline-Finetune, 6 Kanäle (RGBI+NDVI+nDOM) | 0-46 (früh gestoppt) | **0.706** | 35 | P=0.736 / R=0.678 |
+| v1_sampling_fix | wie v1, zusätzlich `oversample_small=True` (Sampling-Fix für kleine Bäume) | 0-22 (früh gestoppt) | 0.684 | 11 | P=0.677 / R=0.692 |
+| v1_no_ndom | 5 Kanäle, **ohne** nDOM/Höhen-Kanal (Ablation) | 0-12 (früh gestoppt) | 0.657 | 2 | P=0.688 / R=0.629 |
 
 **Bestes Modell nach Validierungs-F1 bleibt `v1`** (`runs/v1/checkpoints/best.pt`,
 Epoche 35). Die beiden Varianten sollten `v1` verbessern, tun es aber
 (bisher) nicht:
-- `v1_sampling_fix` liegt knapp unter `v1` — der Sampling-Fix hat die
+- `v1_sampling_fix` liegt knapp unter `v1` - der Sampling-Fix hat die
   Validierungsleistung nicht verbessert und stoppt außerdem viel früher.
 - `v1_no_ndom` bestätigt, dass der Höhenkanal (nDOM) einen relevanten
-  Beitrag leistet — ohne ihn ist F1 spürbar schlechter (0.657 vs. 0.706)
+  Beitrag leistet - ohne ihn ist F1 spürbar schlechter (0.657 vs. 0.706)
   und das Modell konvergiert/überanpasst extrem schnell (Bestwert schon
   bei Epoche 2).
 
@@ -245,11 +245,11 @@ Nur `v1` wurde bislang auf den echten Testgebieten evaluiert
 | HoernNord | 7.5cm | 0.170 | 0.099 | 0.125 |
 
 Das ist eine **massive Lücke** zur Validierungs-F1 von 0.706. Wichtig für
-die Einordnung: Die beiden Zahlen sind **nicht direkt vergleichbar** — der
+die Einordnung: Die beiden Zahlen sind **nicht direkt vergleichbar** - der
 Val-F1 in `train.py` misst pixelweise (jedes Pixel richtig/falsch als
 „Baum"), während `evaluate.py`/`eval_test.csv` auf Ebene einzelner
 Baumkronen misst (IoU-Matching, ≥50% Überlappung zählt als Treffer). Ein
-Teil der Lücke ist also Definitionssache — der harte Rest wurde in
+Teil der Lücke ist also Definitionssache - der harte Rest wurde in
 `debug_predictions.ipynb` bereits systematisch untersucht, siehe
 Abschnitt 3.1.
 
@@ -270,7 +270,7 @@ quantifiziert:
    2.65 Vorhersage-Polygone pro Krone). Eine Anpassung der
    Nachbearbeitungs-Parameter `min_dist=30, sigma=2` (statt der
    Config-Default-Werte) hebt die F1 auf BotGarten bereits von 0.173 auf
-   **0.331** — **aber diese Werte sind bisher nicht in
+   **0.331** - **aber diese Werte sind bisher nicht in
    `configs/finetune_v1.yaml` übernommen und nicht auf dem vollen
    Testsplit (beide Gebiete) bestätigt.**
 2. **Echte verpasste Kronen** (45 von 357): kleine/niedrige Baumkronen,
@@ -287,14 +287,14 @@ Fix in die Config übernehmen und auf dem vollen Testsplit bestätigen,
 kleiner Kronen in `dataset.py` oder einen größenabhängigen Loss-Term in
 `train.py` einbauen.
 
-**Kurz:** Der Test-F1 von 0.12–0.17 ist kein Zeichen eines kaputten
-Modells — ein bekannter, teilweise bereits quantifizierter Fix
+**Kurz:** Der Test-F1 von 0.12-0.17 ist kein Zeichen eines kaputten
+Modells - ein bekannter, teilweise bereits quantifizierter Fix
 (Postprocessing) ist nur noch nicht angewendet, und eine zweite Ursache
 (kleine Kronen) ist identifiziert, aber die Lösung noch offen.
 
 ## 4. Laufende Weiterentwicklung (nicht ausgeführt / nicht abgeschlossen)
 
-Nach den drei Läufen (02.07.) wurde am 10.–13.07. weitergearbeitet, aber
+Nach den drei Läufen (02.07.) wurde am 10.-13.07. weitergearbeitet, aber
 **es wurde kein weiteres Training gestartet**, das Ergebnisse produziert
 hätte:
 
@@ -302,18 +302,18 @@ hätte:
   (getrennte Modelle je Auflösung/Jahreszeit, Cross-Validation,
   schrittweise Ergänzung des Höhenkanals). **Status: Plan vorhanden,
   noch kein Schritt daraus ausgeführt.**
-- `configs/finetune_v1_no_ndom_7.5.yaml` (10.07.) — neue Konfiguration
+- `configs/finetune_v1_no_ndom_7.5.yaml` (10.07.) - neue Konfiguration
   für 7.5cm-Auflösung ohne nDOM. Zielverzeichnis
-  `runs/v1_no_ndom_7.5` **existiert nicht** — dieser Lauf wurde nie
+  `runs/v1_no_ndom_7.5` **existiert nicht** - dieser Lauf wurde nie
   gestartet oder ist ohne jede Ausgabe abgebrochen.
 - `src/dataset.py` wurde am 10.07. umgebaut (jahreszeiten-bewusste
   Augmentierung: NDVI/NIR-Skalierung, RGB-Jitter). `src/dataset_copy.py`
   ist eine ältere/parallele Fassung (einfache Brightness/Contrast +
-  Flips, NDVI-Neuberechnung) — vermutlich ein Backup vor dem Umbau.
+  Flips, NDVI-Neuberechnung) - vermutlich ein Backup vor dem Umbau.
   **Mit dem neuen `dataset.py` wurde noch kein Trainingslauf
-  durchgeführt** — keiner der drei dokumentierten Runs nutzt diesen Code
+  durchgeführt** - keiner der drei dokumentierten Runs nutzt diesen Code
   (deren stdout-Logs zeigen den alten Stand).
-- `3_Model/debug_predictions.ipynb` — siehe Abschnitt 3.1: enthält die
+- `3_Model/debug_predictions.ipynb` - siehe Abschnitt 3.1: enthält die
   Ursachenanalyse zur Val/Test-F1-Lücke, inkl. bereits quantifiziertem,
   aber noch nicht übernommenem Postprocessing-Fix.
 
@@ -344,13 +344,13 @@ z. B. per Pfadangabe oder externem Storage, nicht per Git).
 ## 6. Sonstiges
 
 - Dateien unter `3_Model/runs/` und `2_BaselineModel/*_copy.ipynb` gehören
-  dem Linux-User `nda`, nicht `leafline` — Zugriff funktioniert aktuell
+  dem Linux-User `nda`, nicht `leafline` - Zugriff funktioniert aktuell
   über Gruppenrechte (`leafline`-Gruppe hat rwx), sollte aber bei der
   Übergabe an eine dritte Person geprüft werden.
 - `2_BaselineModel/deeptrees_baseline_copy.ipynb` bricht mit
   `PermissionError` auf `Data/Kiel/TrainingAreas/DOP20/BotGarten.tif` ab.
   Ursache geklärt: `Data/Kiel` ist `0700`, Eigentümer `nda`, und die
-  Zugriffsliste (ACL) sperrt `leafline` (und `joshuaj`) explizit — siehe
+  Zugriffsliste (ACL) sperrt `leafline` (und `joshuaj`) explizit - siehe
   `PROJEKT_ANLEITUNG.md` Abschnitt 1. Das Notebook läuft aber unter dem
   Jupyter-Prozess des `leafline`-Kontos → deshalb der Fehler. Für eine
   frische Baseline-Auswertung muss auch dieses Notebook (bzw. ein
@@ -362,7 +362,7 @@ z. B. per Pfadangabe oder externem Storage, nicht per Git).
 1. Kein Training läuft gerade.
 2. Bestes Modell bisher: **`v1`** (Val-F1 0.706), die beiden Experimente
    (`sampling_fix`, `no_ndom`) haben es **nicht** übertroffen.
-3. Aber: `v1` erreicht auf den echten Testgebieten nur F1 ≈ 0.12–0.17 —
+3. Aber: `v1` erreicht auf den echten Testgebieten nur F1 ≈ 0.12-0.17 -
    die Val-Zahl (pixelweise) und die Test-Zahl (pro Baumkrone) sind
    unterschiedliche Metriken. Die Lücke ist bereits analysiert
    (`debug_predictions.ipynb`, Abschnitt 3.1): ein quantifizierter
@@ -372,6 +372,6 @@ z. B. per Pfadangabe oder externem Storage, nicht per Git).
 4. Ein detaillierter Folgeplan liegt vor (`SCHEDULE.txt`), ist aber noch
    nicht begonnen.
 5. **Dringend vor Übergabe:** `src/`, `configs/`, `SCHEDULE.txt` in Git
-   committen — aktuell nur lokal auf dieser Maschine vorhanden.
+   committen - aktuell nur lokal auf dieser Maschine vorhanden.
 6. Wie man ein Training praktisch startet/prüft und warum die Konten
    `nda`/`leafline` getrennt sind: siehe `PROJEKT_ANLEITUNG.md`.

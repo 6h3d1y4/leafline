@@ -3,12 +3,12 @@
 Pre-process training data for 6-channel fine-tuning.
 
 Creates in TrainingAreas/:
-  stacked_6ch/{area}.tif        — 6-band float32 [0,1]: R G B I NDVI nDOM  (7.5cm spring)
-  stacked_6ch/{area}_summer.tif — same format, DOP20 resampled to 7.5cm    (20cm summer)
-  stacked_6ch/{area}_native20_summer.tif — native 20cm DOP20 (no reprojection), test areas only, for baseline-comparable eval
-  stacked_6ch/{area}_native20_spring.tif — native 20cm DOP20-spring (no reprojection). --eval-resolutions: test areas (image only). --train-spring20: train/valid areas (+ GT)
-  gt_bands/{area}_gt.tif        — 3-band float32 [0,1]: mask | outline | dist_transform
-  gt_bands/{area}_native20_spring_gt.tif — same, at native 20cm grid (--train-spring20)
+  stacked_6ch/{area}.tif        - 6-band float32 [0,1]: R G B I NDVI nDOM  (7.5cm spring)
+  stacked_6ch/{area}_summer.tif - same format, DOP20 resampled to 7.5cm    (20cm summer)
+  stacked_6ch/{area}_native20_summer.tif - native 20cm DOP20 (no reprojection), test areas only, for baseline-comparable eval
+  stacked_6ch/{area}_native20_spring.tif - native 20cm DOP20-spring (no reprojection). --eval-resolutions: test areas (image only). --train-spring20: train/valid areas (+ GT)
+  gt_bands/{area}_gt.tif        - 3-band float32 [0,1]: mask | outline | dist_transform
+  gt_bands/{area}_native20_spring_gt.tif - same, at native 20cm grid (--train-spring20)
 
 Run once before training. Safe to re-run (skips existing files unless --overwrite).
 
@@ -145,7 +145,7 @@ def rasterize_gt(gdf, shape, transform, crs):
         gdf = gdf.to_crs(crs)
 
     if len(gdf) == 0:
-        warnings.warn("Empty GT — all arrays will be zero")
+        warnings.warn("Empty GT - all arrays will be zero")
         z = np.zeros(shape, dtype=np.float32)
         return z, z, z
 
@@ -217,7 +217,7 @@ def process_area(area, gt_shp, dop_dir, ndom_dir, out_stacked, out_gt, overwrite
             dst.write(dist, 3)
         print(f" {len(gdf)} crowns → {out_g.name}")
     else:
-        print(f"  {area}: no GT shapefile — skipping GT creation")
+        print(f"  {area}: no GT shapefile - skipping GT creation")
 
 
 def process_area_summer(area, dop20_dir, dop75_dir, ndom75_dir, out_stacked, out_gt, overwrite=False):
@@ -248,7 +248,7 @@ def process_area_summer(area, dop20_dir, dop75_dir, ndom75_dir, out_stacked, out
         print(f"  {area}_summer: nDOM7-5 not found at {ndom75_path}, skipping")
         return
     if not src_gt.exists():
-        print(f"  {area}_summer: GT not found at {src_gt} — run without --summer first")
+        print(f"  {area}_summer: GT not found at {src_gt} - run without --summer first")
         return
 
     print(f"  {area}_summer: resampling DOP20 to 7.5cm grid ...", end="", flush=True)
@@ -271,7 +271,7 @@ def process_area_eval_native(area, dop_dir, ndom_dir, out_stacked, suffix, overw
     for baseline-comparable test-set evaluation. Reuses load_and_stack, which is
     already resolution-agnostic (uses dop_path as the reference grid and resamples
     ndom onto it). Used for the 20cm-summer (DOP20) and 20cm-spring (DOP20-spring)
-    baseline-comparison categories — unlike the 7.5cm-grid `_summer` variant used
+    baseline-comparison categories - unlike the 7.5cm-grid `_summer` variant used
     for training augmentation, this keeps the native low-res grid so evaluate.py's
     metrics are directly comparable to baseline_model.ipynb's EVAL_PLAN.
     """

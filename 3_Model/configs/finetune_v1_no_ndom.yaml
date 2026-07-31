@@ -35,7 +35,7 @@ data:
       gt_file: test/HoernNord_GroundTruth.shp
 
 model:
-  # 5 channels: R G B I NDVI — nDOM (height) dropped for the height-ablation comparison
+  # 5 channels: R G B I NDVI - nDOM (height) dropped for the height-ablation comparison
   # against finetune_v1.yaml (6 channels). See dataset.py::channel_indices_for.
   in_channels: 5
   lr: 1.0e-4

@@ -1,4 +1,4 @@
-# Schritt 2 — finale Variante mit CV-bester Lernrate (isolierter Hyperparameter-Effekt).
+# Schritt 2 - finale Variante mit CV-bester Lernrate (isolierter Hyperparameter-Effekt).
 # Identisch zu finetune_step2_spring20.yaml (100% Frühjahr 20cm, RGBI+NDVI, minimale
 # Augmentierung, getuntes PP 10/3), NUR die LR ist anders: 2e-4 statt 1e-4.
 # CV (runs/step2_spring20/cv_results.csv, 3 Folds): 2e-4 = mean val_F1 0.749, über
@@ -6,7 +6,7 @@
 # Fixe-LR-Referenz erhalten bleibt → direkter LR-Vergleich.
 #
 # Vor dem Training müssen die _native20_spring-Stacks vorliegen (prepare_data --train-spring20,
-# bereits gebaut für finetune_step2_spring20.yaml — dieselben Dateien).
+# bereits gebaut für finetune_step2_spring20.yaml - dieselben Dateien).
 paths:
   base: /home/leafline/leafline/Data/Kiel/TrainingAreas
   pretrained: ~/pretrained_models/freudenberg2022.pt
