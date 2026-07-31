@@ -38,7 +38,7 @@ The exploratory data analysis is conducted in the [exploratory_data_analysis.ipy
 
 ### Key Findings
 
-**Data Quality:** No missing files and no NaN pixels were detected across all 183 samples and 6 channels. The dataset is complete and requires no imputation.
+**Data Quality:** No missing files and no NaN pixels were detected across all samples and channels. The dataset is complete and requires no imputation.
 
 **Feature Distributions:** The visible channels (RGB) from the summer images are relativly evenly distributed with slight spikes at each end. The NIR channel is heavily right skewed, resulting from the strong signal of healthy vegetation in summer. The RGB and NIR channels from the spring images are left skewed, showing the different reflection behaviour before summer vegetation. CHM distributions show a strong peak at around zero, owning to the flat terrain of northern germany. The negative values represent terrain below sea level. Overall the distribution is right-skewed due to the long tail of high values representing tree crowns and buildings. 
 
