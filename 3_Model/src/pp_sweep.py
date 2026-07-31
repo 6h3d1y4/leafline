@@ -63,7 +63,14 @@ def main():
                         help="Watershed-Marker-Mindestabstand: größer = weniger, größere Marker/Krone.")
     parser.add_argument("--sigma", type=float, nargs="+", default=[1, 2, 3],
                         help="Gaussian-Glättung vor der Maxima-Suche: größer = weniger Spurious-Marker.")
+    parser.add_argument("--outline-mult", type=float, nargs="+", default=None,
+                        help="outline_multiplier-Werte: höher = tiefere Watershed-Barrieren an "
+                             "Kronengrenzen (trennt gemergte Nachbarkronen). Default: nur Config-Wert.")
+    parser.add_argument("--outline-exp", type=float, nargs="+", default=None,
+                        help="outline_exp-Werte: höher = schärferer Grenzen-Kontrast. Default: nur Config-Wert.")
     parser.add_argument("--iou-threshold", type=float, default=0.5)
+    parser.add_argument("--iou-threshold2", type=float, default=0.3,
+                        help="Zweite IoU-Schwelle als Ko-Metrik (Default 0.3).")
     parser.add_argument("--out", default=None,
                         help="Ausgabe-CSV (Default: runs/<output>/pp_sweep_<resolution>.csv)")
     args = parser.parse_args()
@@ -121,26 +128,39 @@ def main():
         print("Keine Kacheln — Pfade/Auflösung prüfen.")
         return
 
-    print(f"\nSweep min_dist={args.min_dist} × sigma={args.sigma}  "
-          f"(Baseline-PP: min_dist={base_pp['min_dist']}, sigma={base_pp['sigma']}) — "
+    om_grid = args.outline_mult if args.outline_mult is not None else [base_pp["outline_multiplier"]]
+    oe_grid = args.outline_exp if args.outline_exp is not None else [base_pp["outline_exp"]]
+    print(f"\nSweep min_dist={args.min_dist} × sigma={args.sigma} × "
+          f"outline_mult={om_grid} × outline_exp={oe_grid}  "
+          f"(Baseline-PP: min_dist={base_pp['min_dist']}, sigma={base_pp['sigma']}, "
+          f"outline_multiplier={base_pp['outline_multiplier']}, outline_exp={base_pp['outline_exp']}) — "
           f"GT gesamt: {total_gt}\n")
 
     # ── Sweep (nur Postprocessing, keine erneute Inferenz) ──────────────────
     rows = []
-    for md, sg in itertools.product(args.min_dist, args.sigma):
-        pp = {**base_pp, "min_dist": md, "sigma": sg}
-        tp = fp = fn = preds = 0
+    for md, sg, om, oe in itertools.product(args.min_dist, args.sigma, om_grid, oe_grid):
+        pp = {**base_pp, "min_dist": md, "sigma": sg,
+              "outline_multiplier": om, "outline_exp": oe}
+        tp = fp = fn = tp2 = fp2 = fn2 = preds = 0
         for area, mask, outline, dist, transform, gt_polys in tiles:
             polys = extract_polygons(mask, outline, dist, transform=transform, **pp)
             a, b, c = match_polygons(polys, gt_polys, args.iou_threshold)
+            a2, b2, c2 = match_polygons(polys, gt_polys, args.iou_threshold2)
             tp += a; fp += b; fn += c; preds += len(polys)
+            tp2 += a2; fp2 += b2; fn2 += c2
         p, r, f1 = compute_metrics(tp, fp, fn)
-        rows.append({"min_dist": md, "sigma": sg, "pred": preds, "gt": total_gt,
-                     "tp": tp, "fp": fp, "fn": fn,
-                     "precision": round(p, 4), "recall": round(r, 4), "f1": round(f1, 4)})
-        flag = "  ← Baseline-PP" if (md == base_pp["min_dist"] and sg == base_pp["sigma"]) else ""
-        print(f"  min_dist={md:3d}  sigma={sg:<4g}  pred={preds:5d}  "
-              f"P={p:.3f} R={r:.3f}  F1={f1:.3f}{flag}")
+        p2, r2, f12 = compute_metrics(tp2, fp2, fn2)
+        rows.append({"min_dist": md, "sigma": sg,
+                     "outline_multiplier": om, "outline_exp": oe,
+                     "pred": preds, "gt": total_gt, "tp": tp, "fp": fp, "fn": fn,
+                     "precision": round(p, 4), "recall": round(r, 4), "f1": round(f1, 4),
+                     "precision_03": round(p2, 4), "recall_03": round(r2, 4),
+                     "f1_03": round(f12, 4)})
+        is_base = (md == base_pp["min_dist"] and sg == base_pp["sigma"]
+                   and om == base_pp["outline_multiplier"] and oe == base_pp["outline_exp"])
+        flag = "  ← Baseline-PP" if is_base else ""
+        print(f"  min_dist={md:3d}  sigma={sg:<4g}  om={om:<4g} oe={oe:<4g}  pred={preds:5d}  "
+              f"F1@.5={f1:.3f} (R={r:.3f})  F1@.3={f12:.3f}{flag}")
 
     rows.sort(key=lambda x: x["f1"], reverse=True)
 
@@ -153,12 +173,16 @@ def main():
         writer.writerows(rows)
 
     best = rows[0]
-    print(f"\nBestes PP: min_dist={best['min_dist']} sigma={best['sigma']}  "
-          f"→ F1={best['f1']:.4f}  (pred={best['pred']} vs GT={total_gt})")
+    print(f"\nBestes PP: min_dist={best['min_dist']} sigma={best['sigma']} "
+          f"outline_multiplier={best['outline_multiplier']} outline_exp={best['outline_exp']}  "
+          f"→ F1@.5={best['f1']:.4f}  F1@.3={best['f1_03']:.4f}  "
+          f"(pred={best['pred']} vs GT={total_gt})")
     print(f"Saved: {out_path}")
     print("\nZum Übernehmen in den Config (postprocessing:):")
     print(f"  min_dist: {best['min_dist']}")
     print(f"  sigma: {best['sigma']}")
+    print(f"  outline_multiplier: {best['outline_multiplier']}")
+    print(f"  outline_exp: {best['outline_exp']}")
 
 
 if __name__ == "__main__":
