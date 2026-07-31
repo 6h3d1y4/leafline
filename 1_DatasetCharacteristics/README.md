@@ -51,5 +51,5 @@ RGBI channels strongly correlate with each other and slightly with height and cr
 - *Seasonal Bias*: Most models are trained on summer (leaf-on) imagery, since it allows for much better tree identification and segmentation. Since aerial images collected in Kiel city are generally collected in spring (leaf-off), a model will require finetuning to accuratly capture trees in sping images. The dataset contains these images.
 - *Resolution Bias*: Most models are trained on resolutions around 20cm, since public data is not available at higher resolution. This dataset contains high-resolution (7.5cm) images from spring 2025.
 - This dataset contains images from multiple seasons and with multiple resolutions and is therefore well suited to analyze the impact of seasonal and resolution bias on model output.
-- *Tree sampling bias*: Large trees appear more often than smaller trees and are better represented in the height data. This might cause small trees to be underrepresented in the model and less accuratly predicted.
+- *Tree sampling bias*: Large trees appear much more often than smaller trees and are better represented in the height data. This might cause small trees to be underrepresented in the model and less accuratly predicted.
 
