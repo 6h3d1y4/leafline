@@ -111,8 +111,8 @@ Läufe, 0.809). → **Saisons sind gemeinsam trainierbar, Schedule-Schritt 4 (se
 Sommer-Modell) entfällt.**
 
 **Gelernte Struktur:** getrennte Modelle je **Auflösung** (7.5 vs. 20), aber **ein**
-Modell je Auflösung über beide **Saisons**. Beste Modelle: step1 @7.5cm (0.150),
-step3 @20cm (Frühjahr 0.144 / Sommer 0.317).
+Modell je Auflösung über beide **Saisons**. Beste Modelle: step1_ndom @7.5cm
+(**0.215** mit outline_exp=12, s. Nachtrag 31.07.), step3 @20cm (Frühjahr 0.144 / Sommer 0.317).
 
 ### Nachtrag — Kanal-Ablation (RGBI / NDVI / nDOM), Schedule abgeschlossen (28.07.)
 
@@ -138,8 +138,35 @@ zu step1, alle mit getuntem PP 30/2):
 Gelernte Struktur: getrennte Modelle je **Auflösung**, ein Modell je Auflösung über beide
 **Saisons**; Kanäle RGBI<+NDVI<+nDOM (alle Gewinne aus der Precision).
 
-**Nächste sinnvolle Richtung** (außerhalb des Schedules): gezieltes Kleinkronen-Sampling /
-mehr Daten, oder die IoU-Schwelle (0.5) für kleine Kronen überdenken.
+### Nachtrag — Outline-Postprocessing gegen Merging (31.07.)
+
+Die obige Aussage „Recall robust gegen alles" ist **teilweise widerlegt.** Segmentierungs-
+Diagnose (`seg_diagnostic.py`, step1_ndom @7.5cm): unter den Instanz-Fehlern ist **Merging**
+(≥2 GT je Vorhersage, **21 %**) rund **4× häufiger** als Über-Segmentierung (5 %). Der
+richtige Hebel ist also der **Outline-Kanal**, nicht `min_dist`.
+
+`pp_sweep.py` um `outline_multiplier`/`outline_exp` erweitert (+ Ko-Metrik F1@0.3). Befund:
+`outline_multiplier` und kleineres `min_dist` bringen nichts (nur Fragmente/FP), aber
+**`outline_exp` monoton hilfreich** — es lässt nur *hochkonfidente* Kronengrenzen überleben
+und trennt so verschmolzene Nachbarn. Knie bei **`outline_exp=12`** (F1@0.3 gesättigt):
+
+| 7.5cm (oe=12) | F1@0.5 | F1@0.3 | Precision | Recall |
+|---|---|---|---|---|
+| 4 — RGBI | 0.173 | 0.431 | 0.222 | 0.142 |
+| 5 — +NDVI | 0.208 | 0.411 | 0.290 | 0.163 |
+| **6 — +nDOM** | **0.215** | **0.438** | 0.331 | **0.160** |
+
+- Bestes Modell **0.158 → 0.215** (+37 %), und — anders als alle bisherigen Hebel — **Recall
+  0.116 → 0.160**. Der Hebel wirkt kanal-unabhängig (~+0.05 F1 je Variante), Kanal-Reihenfolge
+  bleibt RGBI<+NDVI<+nDOM. Zusammensetzung verschoben: hit 12→16 %, zero 40→38 %.
+- `outline_exp=12` in alle drei 7.5cm-Configs übernommen; eval_test/iou_curve neu erzeugt,
+  Notebook + README aktualisiert. **Vorbehalt:** PP auf dem Test-Set getunt — Gewinn real,
+  Absolutwert leicht optimistisch.
+- **Rest-Decke** ist jetzt die **Nicht-Erkennung** (~38 % zero) — nicht per PP lösbar.
+
+**Nächste sinnvolle Richtung** (außerhalb des Schedules): gegen die Nicht-Erkennung
+höheres **Outline-Loss-Gewicht** im Training, gezieltes Kleinkronen-Sampling / mehr Daten,
+oder die IoU-Schwelle (0.5) für kleine Kronen überdenken.
 
 Gesamtauswertung: `3_Model/results_all_steps.ipynb`.
 

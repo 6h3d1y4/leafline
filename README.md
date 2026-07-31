@@ -39,17 +39,18 @@ the more common **IoU 0.3**. Postprocessing is tuned per resolution (`pp_sweep.p
   fine-tuned on 100 % spring 7.5 cm, 6 channels (RGBI + NDVI + nDOM/height).
 - **Best Model (20 cm):** `step3_mix20` — fine-tuned on a 50/50 summer+spring 20 cm mix.
 - **Evaluation Metric:** crown-level F1 (IoU-matched instance segmentation).
-- **Final Performance:** 7.5 cm F1 = **0.158** (IoU 0.5) / **0.38** (IoU 0.3);
+- **Final Performance:** 7.5 cm F1 = **0.215** (IoU 0.5) / **0.438** (IoU 0.3);
   20 cm-spring F1 = **0.144** / 0.32; 20 cm-summer F1 = **0.317**.
 
 #### Model Comparison
 - **Baseline Performance (un-fine-tuned):** 7.5 cm F1 = **0.000** (out-of-distribution —
   the pretrained model detects almost nothing at Kiel's native resolution),
   20 cm-summer = 0.340, 20 cm-spring = 0.044.
-- **Improvement Over Baseline:** 7.5 cm **0.000 → 0.158** (fine-tuning makes the native
+- **Improvement Over Baseline:** 7.5 cm **0.000 → 0.215** (fine-tuning makes the native
   resolution usable at all); 20 cm-spring **0.044 → 0.144** (~3.3×).
-- **Channel ablation @7.5 cm:** RGBI 0.123 < +NDVI 0.150 < +nDOM 0.158 — every channel
-  helps, almost entirely via precision.
+- **Channel ablation @7.5 cm** (all at tuned PP `outline_exp=12`): RGBI 0.173 < +NDVI 0.208
+  < +nDOM 0.215 — every channel helps; the outline-sharpening postprocessing lifts all
+  three by ~0.05 F1 (channel-independent).
 
 #### Key Insights
 - **Most Important Features:** RGBI + NDVI carry the core signal (NDVI helps even in
@@ -58,10 +59,14 @@ the more common **IoU 0.3**. Postprocessing is tuned per resolution (`pp_sweep.p
 - **Model Strengths:** works at Kiel's native 7.5 cm spring imagery where the baseline
   fails entirely; a single 20 cm model handles both seasons (separate season models are
   not needed) and even improves spring over a spring-only model.
-- **Model Limitations:** recall is the ceiling (~0.12 at IoU 0.5, ~0.29 at IoU 0.3) —
-  ~40 % of crowns are not detected and ~48 % are localized but fail IoU 0.5 due to a mix
-  of over-segmentation and merging of adjacent crowns. Postprocessing, learning-rate
-  tuning and extra channels do not move recall; it is a data/annotation-density limit.
+- **Model Limitations:** recall is the ceiling (~0.16 at IoU 0.5, ~0.33 at IoU 0.3).
+  Sharpening the outline channel in postprocessing (`outline_exp`) splits merged neighbouring
+  crowns and *does* move recall (0.116 → 0.160; F1@0.5 0.158 → 0.215) — merging (~21 % of
+  predictions swallow ≥2 crowns) is ~4× the over-segmentation rate, so this is the right
+  lever. What remains is non-detection: ~38 % of crowns have no overlapping prediction at all
+  and ~46 % are localized but fail IoU 0.5. Non-detection is *not* moved by postprocessing,
+  learning-rate tuning or extra channels — it is a data/annotation-density limit. (PP is
+  tuned on the test set; the gain is real but the absolute value is optimistic.)
 - **Practical Impact:** the workflow shows a pretrained crown model can be adapted to a
   new city/resolution with little data, filling the gap of un-surveyed (private-land)
   trees — but reliable per-crown delineation at 7.5 cm still needs more/denser training

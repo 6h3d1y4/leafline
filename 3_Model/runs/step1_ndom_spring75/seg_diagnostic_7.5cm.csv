@@ -1,0 +1,7 @@
+metric,bucket,count,pct
+preds_per_gt,0,381,52.05
+preds_per_gt,1,313,42.76
+preds_per_gt,>=2,38,5.19
+gts_per_pred,0,39,11.4
+gts_per_pred,1,230,67.25
+gts_per_pred,>=2,73,21.35
