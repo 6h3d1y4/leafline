@@ -11,6 +11,7 @@
 ### Model Performance
 - **Evaluation Metric:** TruePositive, FalsePositive, FalseNegative, Precision, Recall, F1-Score
 - **Performance Score:**
+  
 | gebiet | aufloesung |	pred | gt | tp | fp | fn | precision | recall | f1 |
 |---|---|---|---|---|---|---|---|---|---:|
 | BotGarten | 7.5cm | 16 | 357 | 0 | 16 |357 | 0.000 | 0.000 | 0.000 |
@@ -20,6 +21,7 @@
 | HoernNord | 20cm | 139 | 375 | 74 | 65 | 301 | 0.532 | 0.197 | 0.288 |
 | HoernNord	| 20cm-spring | 0 | 375 | 0 | 0 | 375 | 0.000 | 0.000 | 0.000 |
 - **Cross-Validation Score:**
+  
 | metric | mean ± std |
 |---|---:|
 |pred | 93.83 ± 125.39 |
