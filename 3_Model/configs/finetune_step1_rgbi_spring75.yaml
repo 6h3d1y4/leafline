@@ -66,7 +66,7 @@ training:
 postprocessing:
   mask_exp: 2
   outline_multiplier: 5
-  outline_exp: 1
+  outline_exp: 12   # getunt (pp_sweep, Test): hochkonfidente Grenzen trennen gemergte Kronen
   dist_exp: 0.5
   sigma: 2
   binary_threshold: 0.10
