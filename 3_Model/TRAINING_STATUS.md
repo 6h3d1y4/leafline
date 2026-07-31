@@ -30,7 +30,7 @@ dafür ausgebaut und erstmals ein sauberer Baseline-Vergleich erzeugt.
 | Auflösung | Baseline | step1 | Δ |
 |---|---|---|---|
 | **7.5cm** (Frühjahr) | **0.000** | **0.120** | **+0.120** |
-| **20cm** (Sommer) | **0.339** | 0.052 | **−0.287** |
+| **20cm** (Sommer) | **0.339** | 0.052 | **-0.287** |
 | **20cm-spring** (Frühjahr) | 0.044 | 0.041 | ≈ 0 |
 
 1. **7.5cm: Finetune notwendig und erfolgreich.** Die Baseline erkennt bei

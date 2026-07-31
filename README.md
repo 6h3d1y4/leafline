@@ -4,7 +4,7 @@
 
 ## Repository Link
 
-[https://github.com/6h3d1y4/leafline]
+[https://github.com/6h3d1y4/leafline](https://github.com/6h3d1y4/leafline)
 
 ## Description
 
@@ -84,4 +84,6 @@ the more common **IoU 0.3**. Postprocessing is tuned per resolution (`pp_sweep.p
 5. **[Presentation](4_Presentation/README.md)**
 
 ## Cover Image
+
+![Leafline cover image](CoverImage/cover_image.png)
 
